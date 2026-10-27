@@ -1,0 +1,9 @@
+{
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "attachmentFolderPath": "99 - Adjuntos",
+  "showLineNumber": true,
+  "readableLineLength": true,
+  "defaultViewMode": "preview"
+}
