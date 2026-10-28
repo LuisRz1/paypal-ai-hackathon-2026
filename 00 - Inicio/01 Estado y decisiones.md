@@ -16,7 +16,7 @@ updated: 2026-10-27
 | Repo | `D:/SISTEMAS/PayPal-Hackathon` |
 | Fase | Freeze / blockers externos |
 | Modelo | Recover (pendiente spike de sandbox) |
-| Sponsor objetivo | Bryntum (propuesto) |
+| Sponsor objetivo | Ninguno (foco Grand/Impactful) |
 | Readiness | 82/100 (research 20, repo 10, app 29, PayPal 7, AI 6, deploy 4, demo 6) |
 | Toolchain | Node 22.23, npm 10.9.8, Python 3.12.9, git 2.53 |
 | Spike | 16/16 tests; estado y errores verificados |
@@ -28,6 +28,7 @@ updated: 2026-10-27
 | Calidad | 0 vulnerabilidades, 0 violaciones a11y, móvil 390/390 |
 | Retry | GET reintenta 429/5xx; capture/activate no reintentan 5xx |
 | Tests | 288 casos de estado, 0 violaciones; teclado y live regions verificados |
+| Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |
 | Licencia prevista | MIT |
