@@ -34,6 +34,7 @@ updated: 2026-10-27
 | Seguridad | Auth antes de lookup; config PayPal parcial → 503; LLM timeout 8s |
 | Timeouts | OAuth 8s; requests PayPal 10s |
 | Carga | 20 recover/approve → 1 ganador; 50 webhooks → 1 evento; p95 < 180 ms |
+| Docs | Esquema, arquitectura y submission alineados con el código actual |
 | Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |

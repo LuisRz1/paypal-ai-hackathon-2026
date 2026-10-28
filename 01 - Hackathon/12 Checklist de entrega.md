@@ -46,6 +46,7 @@ updated: 2026-10-27
 ## QA previo
 
 - [ ] Probar en una máquina limpia.
+- [ ] Ejecutar `sandbox-check.mjs --execute --save` y guardar `docs/evidence/`.
 - [ ] Verificar enlaces del README.
 - [ ] Verificar que el video no está privado.
 - [ ] Verificar que el repo no tiene el `.env`.

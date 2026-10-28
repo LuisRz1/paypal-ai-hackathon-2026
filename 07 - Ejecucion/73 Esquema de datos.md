@@ -100,7 +100,7 @@ updated: 2026-10-27
 | intent | text | |
 | model | text | |
 | proposal | jsonb | |
-| status | text | proposed / blocked / approved / executed / verified |
+| status | text | proposed / blocked / awaiting_approval / executed / pending_verification / verified |
 | created_at | timestamptz | |
 
 ### `approvals`
@@ -131,17 +131,29 @@ updated: 2026-10-27
 3. Una acción de dinero por `run_id`.
 4. `webhook_events.id` es único (dedupe).
 5. Toda ejecución tiene `approval` previa.
-6. Toda ejecución tiene `verified_at` o queda `pending`.
+6. Toda ejecución tiene `verified_at` o queda `pending_verification`.
 7. `audit_events` no se actualiza ni se borra.
+8. En la implementación actual, propuestas y ledger viven en memoria; `recovered` es un flag mock por suscripción.
 
 ## Estados del run
 
 ```text
 proposed → blocked
-proposed → approved → executed → verified
-proposed → approved → executed → pending_gateway
-pending_gateway → verified | failed
+proposed → awaiting_approval
+awaiting_approval → executed → verified
+executed → pending_verification → verified | failed
+pending_verification → blocked (nueva propuesta)
 ```
+
+## Estado implementado (mock)
+
+| Store | Persistencia |
+|---|---|
+| `proposals` | Memoria |
+| `ledger` | Memoria |
+| `recovered` | Flag en memoria por suscripción |
+
+El mock marca `recovered` tras una captura exitosa y rechaza una segunda propuesta con `409`.
 
 ## Enlaces
 

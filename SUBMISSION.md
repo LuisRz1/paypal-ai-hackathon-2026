@@ -24,7 +24,7 @@ Recover reads the subscription, explains the failure reason, proposes one recove
 4. The merchant approves the exact amount.
 5. The server calls `POST /v1/billing/subscriptions/{id}/capture` with `capture_type: OUTSTANDING_BALANCE`.
 6. If the subscription stays suspended, the server calls `/activate`.
-7. The server reads the subscription back and records `proposal`, `capture` and `verify` events.
+7. The server reads the subscription back and records `proposal`, `capture` and `verify` events. If the outcome is uncertain, the proposal becomes `PENDING_VERIFICATION` and a new recovery is blocked.
 
 ## PayPal integration
 

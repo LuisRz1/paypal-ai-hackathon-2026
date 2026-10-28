@@ -75,6 +75,7 @@ flowchart LR
 | Fallo | Respuesta |
 |---|---|
 | PayPal timeout | Reconciliar antes de reintentar |
+| PayPal 5xx tras capture | `PENDING_VERIFICATION`; read-back antes de reintentar |
 | Webhook perdido | Cron que relee la orden |
 | LLM caído | Fallback determinista |
 | Tool devuelve “success” falso | Verificador independiente |

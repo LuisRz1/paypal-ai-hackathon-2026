@@ -105,6 +105,11 @@ CRON_SECRET=
 | `test` | Tests unitarios |
 | `test:e2e` | Flujo sandbox |
 | `lint` | ESLint/Prettier |
+| `node --experimental-strip-types web/scripts/sandbox-check.mjs` | Dry run contra sandbox |
+| `... sandbox-check.mjs --execute --save` | Captura real + evidencia |
+| `node web/scripts/load-check.mjs` | Carga y concurrencia |
+| `node --experimental-strip-types web/scripts/state-matrix.mjs` | Matriz de estados |
+| `node --experimental-strip-types web/scripts/paypal-smoke.mjs` | Cliente PayPal con servidor falso |
 
 ## Reglas de código
 
