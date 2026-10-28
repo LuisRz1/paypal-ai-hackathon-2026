@@ -1,5 +1,5 @@
 import seed from "@/seed.json";
-import { explainFailure } from "@/lib/explain";
+import { createExplainer } from "@/lib/explain-llm";
 import type { Subscription } from "@/lib/state-machine";
 
 export async function POST(request: Request) {
@@ -18,8 +18,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "subscription not found" }, { status: 404 });
   }
 
-  return Response.json({
-    subscriptionId,
-    explanation: explainFailure(subscription.last_failed_payment?.reason_code ?? null),
+  const explainer = createExplainer({
+    apiKey: process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY,
+    baseUrl: process.env.LLM_BASE_URL,
+    model: process.env.LLM_MODEL,
   });
+  const explanation = await explainer.explain(subscription);
+
+  return Response.json({ subscriptionId, explanation });
 }

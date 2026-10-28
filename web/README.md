@@ -18,6 +18,8 @@ Open http://localhost:3100.
 - `GET /api/seed` — 4 seeded subscriptions.
 - `POST /api/recover` — `{ "subscriptionId": "SUB-1002" }` creates a proposal in `AWAITING_APPROVAL`.
 - `POST /api/approve` — `{ "proposalId": "..." }` validates, captures with the mock and verifies.
+- `POST /api/explain` — explanation for the last failure reason (deterministic; optional LLM).
+- `GET /api/health` — config and ledger status.
 - `GET /api/ledger` — proposal, capture and verification events.
 
 ## Webhook
