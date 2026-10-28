@@ -157,10 +157,14 @@ export default function Home() {
         </div>
       )}
 
-      {error && <p className="bad">{error}</p>}
+      {error && (
+        <p className="bad" role="alert">
+          {error}
+        </p>
+      )}
 
       {proposal && (
-        <section className="result">
+        <section className="result" aria-live="polite">
           <strong>Proposal {proposal.id}</strong>
           <div className="action">
             {proposal.action} {proposal.amount.toFixed(2)} {proposal.currency}
@@ -188,7 +192,7 @@ export default function Home() {
       )}
 
       {approval && (
-        <section className="result">
+        <section className="result" aria-live="polite">
           <strong>Execution</strong>
           <div className="action">
             {approval.verified ? "VERIFIED" : "NOT VERIFIED"} · {approval.capture?.captureId}
@@ -198,7 +202,7 @@ export default function Home() {
       )}
 
       {events.length > 0 && (
-        <section className="result">
+        <section className="result" aria-live="polite">
           <strong>Ledger ({events.length})</strong>
           <pre>{JSON.stringify(events, null, 2)}</pre>
         </section>

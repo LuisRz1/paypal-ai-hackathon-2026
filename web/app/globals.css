@@ -109,6 +109,11 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: 2px;
+}
+
 .result {
   margin-top: 24px;
   padding: 16px;
