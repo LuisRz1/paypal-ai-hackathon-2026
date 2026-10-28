@@ -61,13 +61,29 @@ export function createPayPalClient(config: PayPalConfig) {
   }
 
   async function request(path: string, init: RequestInit = {}) {
-    const response = await doFetch(`${config.baseUrl}${path}`, {
+    let response = await doFetch(`${config.baseUrl}${path}`, {
       ...init,
       headers: {
         ...(init.headers ?? {}),
         authorization: `Bearer ${await accessToken()}`,
       },
     });
+    let attempt = 0;
+
+    while ((response.status === 429 || response.status >= 500) && attempt < 2) {
+      attempt += 1;
+      const { promise, resolve } = Promise.withResolvers<void>();
+      setTimeout(resolve, 250 * 2 ** (attempt - 1));
+      await promise;
+      response = await doFetch(`${config.baseUrl}${path}`, {
+        ...init,
+        headers: {
+          ...(init.headers ?? {}),
+          authorization: `Bearer ${await accessToken()}`,
+        },
+      });
+    }
+
     const text = await response.text();
     const body = text ? JSON.parse(text) : {};
     return { response, body };

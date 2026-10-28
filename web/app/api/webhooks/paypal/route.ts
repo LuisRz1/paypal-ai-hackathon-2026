@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     return Response.json({ duplicate: true });
   }
 
+  // Reserve before any await so two concurrent deliveries cannot both process.
+  seen[event.id] = true;
+
   const webhookId = process.env.PAYPAL_WEBHOOK_ID;
 
   if (webhookId) {
@@ -33,16 +36,16 @@ export async function POST(request: Request) {
     });
     const valid = await client.verifyWebhook(request.headers, event);
     if (!valid) {
+      delete seen[event.id];
       return Response.json({ error: "invalid signature" }, { status: 401 });
     }
   } else if (process.env.ALLOW_UNVERIFIED_WEBHOOKS !== "true") {
+    delete seen[event.id];
     return Response.json(
       { error: "webhook verification is not configured" },
       { status: 503 },
     );
   }
-
-  seen[event.id] = true;
 
   const entry: LedgerEvent = {
     id: crypto.randomUUID(),

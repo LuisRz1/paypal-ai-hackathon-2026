@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createPayPalClient } from "../lib/paypal.ts";
 
 const requests = [];
+let retryCount = 0;
 
 const server = http.createServer((req, res) => {
   let body = "";
@@ -15,6 +16,16 @@ const server = http.createServer((req, res) => {
 
     if (req.url === "/v1/oauth2/token") {
       res.end(JSON.stringify({ access_token: "token-1", expires_in: 3600 }));
+      return;
+    }
+    if (req.url === "/v1/billing/subscriptions/SUB-RETRY") {
+      retryCount += 1;
+      if (retryCount === 1) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ name: "INTERNAL_SERVER_ERROR" }));
+        return;
+      }
+      res.end(JSON.stringify({ id: "SUB-RETRY", status: "ACTIVE" }));
       return;
     }
     if (req.url === "/v1/billing/subscriptions/SUB-1") {
@@ -57,6 +68,10 @@ const client = createPayPalClient({
 
 const subscription = await client.getSubscription("SUB-1");
 assert.equal(subscription.status, "SUSPENDED");
+
+const retried = await client.getSubscription("SUB-RETRY");
+assert.equal(retried.status, "ACTIVE");
+assert.equal(retryCount, 2);
 
 const capture = await client.captureOutstanding("SUB-1", {
   amount: 49,

@@ -17,7 +17,7 @@ updated: 2026-10-27
 | Fase | Spike + esqueleto de app |
 | Modelo | Recover (pendiente spike de sandbox) |
 | Sponsor objetivo | Bryntum (propuesto) |
-| Readiness | 78/100 (research 20, repo 10, app 28, PayPal 5, AI 6, deploy 4, demo 5) |
+| Readiness | 80/100 (research 20, repo 10, app 28, PayPal 6, AI 6, deploy 4, demo 6) |
 | Toolchain | Node 22.23, npm 10.9.8, Python 3.12.9, git 2.53 |
 | Spike | 16/16 tests; estado y errores verificados |
 | App | Approval + ledger + mock PayPal verificados en navegador |
@@ -26,7 +26,7 @@ updated: 2026-10-27
 | Deploy | render.yaml listo, no desplegado |
 | Seguridad | Approver token + dedupe + webhook 400 verificados |
 | Calidad | 0 vulnerabilidades, 0 violaciones a11y, móvil 390/390 |
-| Submission | `SUBMISSION.md` draft + `web/DEMO.md`; video/URL pendientes |
+| Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |
 | Licencia prevista | MIT |
 | Idioma de entrega | Inglés |

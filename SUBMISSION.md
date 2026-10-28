@@ -6,6 +6,8 @@
 
 **Recover** is a PayPal-native agent that turns a failed subscription renewal into a recovered outstanding balance before the subscriber churns.
 
+![Recover dashboard](web/public/demo.png)
+
 ## Problem
 
 PayPal retries a failed subscription payment up to twice per billing cycle. If both attempts fail, the amount moves to the subscription's **outstanding balance**, and the subscription can be **suspended**. Small merchants often miss that state until the customer is gone.
