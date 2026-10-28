@@ -17,7 +17,7 @@ updated: 2026-10-27
 | Fase | Freeze / blockers externos |
 | Modelo | Recover (pendiente spike de sandbox) |
 | Sponsor objetivo | Ninguno (foco Grand/Impactful) |
-| Readiness | 85/100 (research 20, repo 10, app 29, PayPal 9, AI 6, deploy 4, demo 7) |
+| Readiness | 87/100 (research 20, repo 10, app 29, PayPal 9, AI 6, deploy 4, demo 9) |
 | Toolchain | Node 22.23, npm 10.9.8, Python 3.12.9, git 2.53 |
 | Spike | 16/16 tests; estado y errores verificados |
 | App | Approval + ledger + mock PayPal verificados en navegador |
@@ -30,6 +30,7 @@ updated: 2026-10-27
 | Tests | 288 casos de estado, 0 violaciones; teclado y live regions verificados |
 | Outcomes | 5xx/timeout → PENDING_VERIFICATION; mock repetido → 409 |
 | Sandbox runner | `web/scripts/sandbox-check.mjs` dry-run/execute/save listo |
+| Runner tests | 5/5: dry run, execute, zero, unknown, live refusal |
 | Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |
