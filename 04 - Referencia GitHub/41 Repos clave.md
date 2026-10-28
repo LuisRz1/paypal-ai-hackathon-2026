@@ -38,6 +38,12 @@ Estrellas al 27 oct 2026; no son señal de calidad, solo de atención.
 | [`Jeremiah-Sakuda/harambee`](https://github.com/Jeremiah-Sakuda/harambee) | Pagos grupales | Authorizations por persona, consentimiento versionado, `docs/evidence` | Muy completo |
 | [`jamesparser/paypal-commerce-mcp`](https://github.com/jamesparser/paypal-commerce-mcp) | x402 + PayPal + AG Grid | MCP propio, ledger de procedencia | Ambitious |
 | [`arindewangan/invoicepilot`](https://github.com/arindewangan/invoicepilot) | Invoicing NL | Agent trace, showcase mode sin credenciales | Simple y completo |
+| [`manishwvn/rebuttal`](https://github.com/manishwvn/rebuttal) | Disputas / prevención | LangGraph, un solo write path, cliente read-only, guard determinista, 1,000+ tests, AG Studio | Reference grade |
+| [`OmkarD09/Docket`](https://github.com/OmkarD09/Docket) | Disputas / evidencia | Barrera de rechazo determinista, AG Grid, disputa live en sandbox | Reference grade |
+| [`Jasonsu22/firstreply`](https://github.com/Jasonsu22/firstreply) | Disputas / prevención | Trust tiers, policy engine, evidence PDF, eval 22/22 | Reference grade |
+| [`jlhpacheco/solvia`](https://github.com/jlhpacheco/solvia) | Parking permits | Orders + AG Grid + 132 browser checks + capture live | Niche pero muy completo |
+| [`sujith-kamme/keel`](https://github.com/sujith-kamme/keel) | Agent commerce guard | Guard, reviews, sessions, 55 tests | Prometedor |
+| [`koztechie/paypal-recon-agent`](https://github.com/koztechie/paypal-recon-agent) | Reconciliación cross-border | Invoices, reminders, event journal, evidencia por etapa | En desarrollo |
 
 ## Patrones por repo
 
