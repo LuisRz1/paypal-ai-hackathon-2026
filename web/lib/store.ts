@@ -32,6 +32,8 @@ const globalStore = globalThis as unknown as {
   __recoverRecovered?: Record<string, true>;
 };
 
-export const proposals = (globalStore.__recoverProposals ??= {} as Record<string, Proposal>);
+export const proposals = (globalStore.__recoverProposals ??=
+  Object.create(null) as Record<string, Proposal>);
 export const ledger = (globalStore.__recoverLedger ??= [] as LedgerEvent[]);
-export const recovered = (globalStore.__recoverRecovered ??= {} as Record<string, true>);
+export const recovered = (globalStore.__recoverRecovered ??=
+  Object.create(null) as Record<string, true>);

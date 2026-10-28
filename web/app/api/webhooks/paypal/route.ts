@@ -4,7 +4,8 @@ import { ledger, type LedgerEvent } from "@/lib/store";
 const globalWebhooks = globalThis as unknown as {
   __recoverWebhookEvents?: Record<string, true>;
 };
-const seen = (globalWebhooks.__recoverWebhookEvents ??= {} as Record<string, true>);
+const seen = (globalWebhooks.__recoverWebhookEvents ??=
+  Object.create(null) as Record<string, true>);
 
 export async function POST(request: Request) {
   const raw = await request.text();
