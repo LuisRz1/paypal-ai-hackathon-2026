@@ -15,7 +15,7 @@ export interface Proposal {
 
 export interface LedgerEvent {
   id: string;
-  type: "proposal" | "capture" | "verify" | "failure";
+  type: "proposal" | "capture" | "verify" | "failure" | "webhook";
   proposalId: string;
   at: string;
   detail: Record<string, unknown>;

@@ -1,6 +1,7 @@
 import seed from "@/seed.json";
 import { validateCapture, type Plan, type Subscription } from "@/lib/state-machine";
 import { captureOutstandingBalance } from "@/lib/paypal-mock";
+import { createPayPalClient, type PayPalCaptureResult } from "@/lib/paypal";
 import { ledger, proposals, type LedgerEvent } from "@/lib/store";
 
 export async function POST(request: Request) {
@@ -57,15 +58,51 @@ export async function POST(request: Request) {
     return Response.json({ error: validation.issue, proposal, ledger: [failure] }, { status: 422 });
   }
 
+  const configured = Boolean(
+    process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET,
+  );
+  const paypalClient = configured
+    ? createPayPalClient({
+        baseUrl: process.env.PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com",
+        clientId: process.env.PAYPAL_CLIENT_ID as string,
+        clientSecret: process.env.PAYPAL_CLIENT_SECRET as string,
+      })
+    : null;
+
   proposal.status = "EXECUTED";
-  const capture = captureOutstandingBalance({
-    subscriptionId: subscription.id,
-    amount: proposal.amount,
-    currency: proposal.currency,
-    note: proposal.note,
-    requestId: proposal.requestId,
-    scenario: body?.scenario,
-  });
+  let capture: PayPalCaptureResult;
+
+  try {
+    capture = paypalClient
+      ? await paypalClient.captureOutstanding(subscription.id, {
+          amount: proposal.amount,
+          currency: proposal.currency,
+          note: proposal.note,
+          requestId: proposal.requestId,
+        })
+      : captureOutstandingBalance({
+          subscriptionId: subscription.id,
+          amount: proposal.amount,
+          currency: proposal.currency,
+          note: proposal.note,
+          requestId: proposal.requestId,
+          scenario: body?.scenario,
+        });
+  } catch (error) {
+    proposal.status = "FAILED";
+    const failure: LedgerEvent = {
+      id: crypto.randomUUID(),
+      type: "failure",
+      proposalId: proposal.id,
+      at: new Date().toISOString(),
+      detail: { error: error instanceof Error ? error.message : String(error) },
+    };
+    ledger.push(failure);
+    return Response.json(
+      { error: "PayPal request failed", proposal, ledger: [failure] },
+      { status: 502 },
+    );
+  }
 
   const events: LedgerEvent[] = [
     {
@@ -74,7 +111,11 @@ export async function POST(request: Request) {
       proposalId: proposal.id,
       at: new Date().toISOString(),
       detail: capture.ok
-        ? { captureId: capture.captureId, status: capture.status, requestId: proposal.requestId }
+        ? {
+            captureId: capture.captureId,
+            status: capture.status,
+            requestId: proposal.requestId,
+          }
         : { issue: capture.issue, requestId: proposal.requestId },
     },
   ];
@@ -85,7 +126,28 @@ export async function POST(request: Request) {
     return Response.json({ error: capture.issue, proposal, ledger: events }, { status: 422 });
   }
 
-  const verified = capture.status === "COMPLETED";
+  let verified = capture.status === "COMPLETED";
+
+  if (verified && paypalClient) {
+    try {
+      const fresh = await paypalClient.getSubscription(subscription.id);
+      const balance = Number(
+        fresh?.billing_info?.outstanding_balance?.value ?? "NaN",
+      );
+      verified = balance === 0;
+
+      if (verified && fresh?.status === "SUSPENDED") {
+        const activation = await paypalClient.activateSubscription(
+          subscription.id,
+          "Outstanding balance recovered",
+        );
+        verified = activation.ok;
+      }
+    } catch {
+      verified = false;
+    }
+  }
+
   proposal.status = verified ? "VERIFIED" : "FAILED";
   events.push({
     id: crypto.randomUUID(),
