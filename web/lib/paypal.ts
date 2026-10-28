@@ -60,7 +60,13 @@ export function createPayPalClient(config: PayPalConfig) {
     return cached.token;
   }
 
-  async function request(path: string, init: RequestInit = {}) {
+  async function request(
+    path: string,
+    init: RequestInit = {},
+    options: { retry5xx?: boolean } = {},
+  ) {
+    const retry5xx = options.retry5xx ?? ((init.method ?? "GET") === "GET");
+
     let response = await doFetch(`${config.baseUrl}${path}`, {
       ...init,
       headers: {
@@ -70,7 +76,10 @@ export function createPayPalClient(config: PayPalConfig) {
     });
     let attempt = 0;
 
-    while ((response.status === 429 || response.status >= 500) && attempt < 2) {
+    while (
+      (response.status === 429 || (retry5xx && response.status >= 500)) &&
+      attempt < 2
+    ) {
       attempt += 1;
       const { promise, resolve } = Promise.withResolvers<void>();
       setTimeout(resolve, 250 * 2 ** (attempt - 1));
@@ -125,6 +134,7 @@ export function createPayPalClient(config: PayPalConfig) {
           },
         }),
       },
+      { retry5xx: false },
     );
 
     if (!response.ok) {
@@ -146,6 +156,7 @@ export function createPayPalClient(config: PayPalConfig) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ reason }),
       },
+      { retry5xx: false },
     );
 
     return response.ok
@@ -172,6 +183,7 @@ export function createPayPalClient(config: PayPalConfig) {
           webhook_event: event,
         }),
       },
+      { retry5xx: true },
     );
 
     return response.ok && body?.verification_status === "SUCCESS";

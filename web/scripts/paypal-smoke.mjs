@@ -4,6 +4,7 @@ import { createPayPalClient } from "../lib/paypal.ts";
 
 const requests = [];
 let retryCount = 0;
+let captureFailCount = 0;
 
 const server = http.createServer((req, res) => {
   let body = "";
@@ -36,6 +37,12 @@ const server = http.createServer((req, res) => {
           billing_info: { outstanding_balance: { value: "49.00", currency_code: "USD" } },
         }),
       );
+      return;
+    }
+    if (req.url === "/v1/billing/subscriptions/SUB-CAPTURE-FAIL/capture") {
+      captureFailCount += 1;
+      res.statusCode = 500;
+      res.end(JSON.stringify({ name: "INTERNAL_SERVER_ERROR" }));
       return;
     }
     if (req.url === "/v1/billing/subscriptions/SUB-1/capture") {
@@ -89,6 +96,15 @@ assert.equal(captureBody.amount.value, "49.00");
 
 const activation = await client.activateSubscription("SUB-1", "Outstanding balance recovered");
 assert.deepEqual(activation, { ok: true });
+
+const failedCapture = await client.captureOutstanding("SUB-CAPTURE-FAIL", {
+  amount: 49,
+  currency: "USD",
+  note: "Outstanding balance recovered",
+  requestId: "req-fail",
+});
+assert.equal(failedCapture.ok, false);
+assert.equal(captureFailCount, 1);
 
 const verified = await client.verifyWebhook(
   new Headers({

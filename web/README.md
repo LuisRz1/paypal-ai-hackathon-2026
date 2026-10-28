@@ -34,6 +34,7 @@ Open http://localhost:3100.
 - Capture validation for amount, currency, status, note and decimals.
 - Mock PayPal capture with the 8 provider errors.
 - Real sandbox client (`web/lib/paypal.ts`) with OAuth, capture, activate and webhook verification.
+- Reads retry `429`/`5xx`; capture and activate POSTs do not retry on `5xx`.
 - In-memory proposals and ledger.
 - Mock UI; no real money.
 

@@ -46,6 +46,7 @@ Recover reads the subscription, explains the failure reason, proposes one recove
 - Next.js app, API routes, approval gate, ledger, state machine.
 - PayPal sandbox client code (OAuth, capture, activate, webhook verification).
 - Webhook dedupe and malformed-input handling.
+- Read requests retry `429`/`5xx`; capture and activate POSTs do **not** retry on `5xx`, to avoid a double capture.
 
 **Mock:**
 
