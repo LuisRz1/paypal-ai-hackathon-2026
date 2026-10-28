@@ -12,18 +12,18 @@ export async function POST(request: Request) {
     return Response.json({ error: "proposalId is required" }, { status: 400 });
   }
 
-  const proposal = proposals[proposalId];
-
-  if (!proposal) {
-    return Response.json({ error: "proposal not found" }, { status: 404 });
-  }
-
   const requiredToken = process.env.APPROVER_TOKEN;
   if (requiredToken) {
     const provided = request.headers.get("authorization");
     if (provided !== `Bearer ${requiredToken}`) {
       return Response.json({ error: "unauthorized" }, { status: 401 });
     }
+  }
+
+  const proposal = proposals[proposalId];
+
+  if (!proposal) {
+    return Response.json({ error: "proposal not found" }, { status: 404 });
   }
 
   if (proposal.status !== "AWAITING_APPROVAL") {
@@ -67,9 +67,20 @@ export async function POST(request: Request) {
     return Response.json({ error: validation.issue, proposal, ledger: [failure] }, { status: 422 });
   }
 
-  const configured = Boolean(
-    process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET,
-  );
+  const hasClientId = Boolean(process.env.PAYPAL_CLIENT_ID);
+  const hasClientSecret = Boolean(process.env.PAYPAL_CLIENT_SECRET);
+
+  if (hasClientId !== hasClientSecret) {
+    return Response.json(
+      {
+        error:
+          "PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET must be set together",
+      },
+      { status: 503 },
+    );
+  }
+
+  const configured = hasClientId && hasClientSecret;
   const paypalClient = configured
     ? createPayPalClient({
         baseUrl: process.env.PAYPAL_API_BASE ?? "https://api-m.sandbox.paypal.com",

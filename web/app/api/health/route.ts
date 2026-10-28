@@ -8,7 +8,7 @@ export async function GET() {
     webhookConfigured: Boolean(process.env.PAYPAL_WEBHOOK_ID),
     allowUnverifiedWebhooks: process.env.ALLOW_UNVERIFIED_WEBHOOKS === "true",
     llmConfigured: Boolean(
-      process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY,
+      process.env.OPENAI_API_KEY || process.env.LLM_API_KEY,
     ),
     ledgerEvents: ledger.length,
     environment:

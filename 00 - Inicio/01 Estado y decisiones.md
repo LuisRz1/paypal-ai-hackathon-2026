@@ -31,6 +31,7 @@ updated: 2026-10-27
 | Outcomes | 5xx/timeout → PENDING_VERIFICATION; mock repetido → 409 |
 | Sandbox runner | `web/scripts/sandbox-check.mjs` dry-run/execute/save listo |
 | Runner tests | 5/5: dry run, execute, zero, unknown, live refusal |
+| Seguridad | Auth antes de lookup; config PayPal parcial → 503; LLM timeout 8s |
 | Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |

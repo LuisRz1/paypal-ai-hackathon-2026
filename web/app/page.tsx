@@ -66,6 +66,9 @@ export default function Home() {
       });
       const explainPayload = await explainResponse.json();
       setExplanation(explainPayload.explanation ?? null);
+    } catch (cause) {
+      setProposal(null);
+      setError(cause instanceof Error ? cause.message : "Network error");
     } finally {
       setBusy(null);
     }
@@ -91,6 +94,9 @@ export default function Home() {
       setApproval(payload);
       setProposal(payload.proposal);
       await refreshLedger();
+    } catch (cause) {
+      setApproval(null);
+      setError(cause instanceof Error ? cause.message : "Network error");
     } finally {
       setBusy(null);
     }

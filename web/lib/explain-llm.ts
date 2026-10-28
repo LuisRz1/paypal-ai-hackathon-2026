@@ -41,6 +41,7 @@ export function createExplainer(config: ExplainerConfig = {}) {
             authorization: `Bearer ${config.apiKey}`,
             "content-type": "application/json",
           },
+          signal: AbortSignal.timeout(8_000),
           body: JSON.stringify({
             model: config.model ?? "gpt-4o-mini",
             temperature: 0,
