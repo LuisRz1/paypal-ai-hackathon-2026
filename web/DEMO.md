@@ -31,6 +31,27 @@ curl -s -X POST http://127.0.0.1:3100/api/recover \
   -d '{"subscriptionId":"SUB-1002"}' | jq
 ```
 
+## Real sandbox check
+
+From the repo root, with sandbox credentials:
+
+```bash
+export PAYPAL_CLIENT_ID=...
+export PAYPAL_CLIENT_SECRET=...
+export SUBSCRIPTION_ID=I-...
+node --experimental-strip-types web/scripts/sandbox-check.mjs
+```
+
+Dry run by default: prints status, outstanding balance, currency and failed-payment details.
+
+To capture the outstanding balance:
+
+```bash
+node --experimental-strip-types web/scripts/sandbox-check.mjs --execute --save
+```
+
+`--save` writes the evidence to `docs/evidence/sandbox-*.json`. The client refuses any host that is not the PayPal sandbox.
+
 ## Limits
 
 - No PayPal credentials means mock capture.
