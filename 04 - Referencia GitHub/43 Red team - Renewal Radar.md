@@ -47,7 +47,7 @@ Conclusiones:
 1. **Trust patterns ya son table stakes.** Webhooks, aprobación, verificación e idempotencia aparecen en la mayoría. No diferencian por sí solos.
 2. **AG Grid está mucho más saturado de lo que parecía:** 16/30. El premio sigue teniendo 5 slots, pero la competencia es alta.
 3. **Disputas sigue saturado:** 12/30, con Rebuttal, Docket y FirstReply como referencias.
-4. **Subscriptions solo 4/30 y ninguno hace dunning real:**
+4. **Subscriptions solo 4/30 y ninguno hace dunning real.** Corrección posterior: solo **1/30 tiene código real** (Quorum, retainer); los otros tres solo mencionan la palabra:
    - `Quorum` implementa Catalog + Billing plan + Subscription para un retainer, pero su producto es reparto de pagos de equipos.
    - `Rebuttal` y `SarafuPay` mencionan la palabra, no el flujo de recuperación.
    - `hibi89` solo tiene documentación y una rama `feature/subscriptions`.

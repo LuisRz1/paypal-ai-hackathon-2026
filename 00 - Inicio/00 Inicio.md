@@ -26,7 +26,7 @@ Vault de trabajo para el **PayPal AI Hackathon 2026**. Reúne reglas, documentac
 | Checklist de entrega | [[12 Checklist de entrega]] |
 | PayPal | [[20 Autenticacion y sandbox]] · [[21 Checkout]] · [[22 Subscriptions e Invoicing]] · [[23 Payouts Disputes Reports]] · [[24 APMs Pay Later Donate]] · [[25 Webhooks Agent Toolkit MCP]] · [[26 Compliance]] |
 | Sponsors | [[30 Mapa de sponsors]] · [[31 AG Grid]] · [[32 Bryntum]] · [[33 Channel3]] · [[34 Otros sponsors]] |
-| Referencia GitHub | [[40 Landscape]] · [[41 Repos clave]] · [[42 Auditoria 3 iteraciones]] · [[43 Red team - Renewal Radar]] |
+| Referencia GitHub | [[40 Landscape]] · [[41 Repos clave]] · [[42 Auditoria 3 iteraciones]] · [[43 Red team - Renewal Radar]] · [[44 Tercera ronda - Verificacion y pre-mortem]] |
 | Patrones | [[50 Arquitectura canonica]] · [[51 Patrones de confianza]] · [[52 Demo y entrega]] |
 | Modelos | [[60 Comparativa]] · [[61 Modelo A Merchant CFO]] · [[62 Modelo B Scheduler]] · [[63 Modelo C Storefront]] · [[64 Modelo D Disputas]] |
 | Ejecución | [[70 Stack y estructura]] · [[71 Backlog 16 dias]] · [[72 Guion del video]] · [[73 Esquema de datos]] |
