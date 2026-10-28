@@ -38,6 +38,7 @@ updated: 2026-10-27
 | Hardening | Stores null-prototype; sin CORS cross-origin; sin rate limit (demo) |
 | Runtime | Node 22+ (Promise.withResolvers); Render NODE_VERSION=22 |
 | Headers | nosniff, DENY, referrer, permissions, HSTS; sin X-Powered-By |
+| Render | YAML parsea; campos contra spec; sin cambios |
 | Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |
