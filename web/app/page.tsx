@@ -1,23 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { nextAction, type Action, type Plan, type Subscription } from "@/lib/state-machine";
+import { nextAction, type Plan, type Subscription } from "@/lib/state-machine";
+import type { LedgerEvent, Proposal } from "@/lib/store";
 
 interface Seed {
   plans: Record<string, Plan>;
   subscriptions: Subscription[];
 }
 
-interface RecoverResponse {
-  subscriptionId: string;
-  action: Action;
-  subscription: Subscription;
+interface Approval {
+  proposal: Proposal;
+  capture?: { captureId?: string; status?: string };
+  verified?: boolean;
+  ledger?: LedgerEvent[];
 }
 
 export default function Home() {
   const [seed, setSeed] = useState<Seed | null>(null);
-  const [result, setResult] = useState<RecoverResponse | null>(null);
+  const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [approval, setApproval] = useState<Approval | null>(null);
+  const [events, setEvents] = useState<LedgerEvent[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/seed")
@@ -26,15 +31,54 @@ export default function Home() {
       .catch(() => setSeed(null));
   }, []);
 
+  async function refreshLedger() {
+    const response = await fetch("/api/ledger");
+    const payload = await response.json();
+    setEvents(payload.events ?? []);
+  }
+
   async function propose(subscriptionId: string) {
     setBusy(subscriptionId);
+    setError(null);
+    setApproval(null);
     try {
       const response = await fetch("/api/recover", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ subscriptionId }),
       });
-      setResult(await response.json());
+      const payload = await response.json();
+      if (!response.ok) {
+        setProposal(null);
+        setError(payload.error ?? "Could not propose a recovery");
+        return;
+      }
+      setProposal(payload.proposal);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function approve() {
+    if (!proposal) return;
+    setBusy(proposal.id);
+    setError(null);
+    try {
+      const response = await fetch("/api/approve", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ proposalId: proposal.id }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        setError(payload.error ?? "Approval failed");
+        setProposal(payload.proposal ?? proposal);
+        await refreshLedger();
+        return;
+      }
+      setApproval(payload);
+      setProposal(payload.proposal);
+      await refreshLedger();
     } finally {
       setBusy(null);
     }
@@ -45,7 +89,7 @@ export default function Home() {
       <h1>Recover</h1>
       <p className="subtitle">
         PayPal-native recovery for suspended subscriptions. The agent proposes; deterministic
-        rules decide; a human approves; PayPal verifies. Sandbox only.
+        rules decide; a human approves; PayPal verifies. Sandbox and mock only.
       </p>
 
       {!seed ? (
@@ -96,14 +140,40 @@ export default function Home() {
         </table>
       )}
 
-      {result && (
+      {error && <p className="bad">{error}</p>}
+
+      {proposal && (
         <section className="result">
-          <strong>Proposal for {result.subscriptionId}</strong>
+          <strong>Proposal {proposal.id}</strong>
           <div className="action">
-            {result.action.action} {result.action.amount ? `$${result.action.amount}` : ""}
+            {proposal.action} {proposal.amount.toFixed(2)} {proposal.currency}
           </div>
-          <div className="muted">{result.action.reason}</div>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+          <div className="muted">
+            {proposal.status} · request {proposal.requestId}
+          </div>
+          <button
+            onClick={approve}
+            disabled={proposal.status !== "AWAITING_APPROVAL" || busy !== null}
+          >
+            {busy === proposal.id ? "Approving…" : "Approve recovery"}
+          </button>
+        </section>
+      )}
+
+      {approval && (
+        <section className="result">
+          <strong>Execution</strong>
+          <div className="action">
+            {approval.verified ? "VERIFIED" : "NOT VERIFIED"} · {approval.capture?.captureId}
+          </div>
+          <pre>{JSON.stringify(approval, null, 2)}</pre>
+        </section>
+      )}
+
+      {events.length > 0 && (
+        <section className="result">
+          <strong>Ledger ({events.length})</strong>
+          <pre>{JSON.stringify(events, null, 2)}</pre>
         </section>
       )}
     </main>
