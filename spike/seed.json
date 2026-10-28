@@ -1,0 +1,86 @@
+{
+  "plans": {
+    "P-PRO": {
+      "name": "Pro",
+      "currency": "USD",
+      "amount": 29,
+      "payment_failure_threshold": 2,
+      "auto_bill_outstanding": true
+    },
+    "P-STARTER": {
+      "name": "Starter",
+      "currency": "USD",
+      "amount": 19,
+      "payment_failure_threshold": 2,
+      "auto_bill_outstanding": true
+    },
+    "P-LEGACY": {
+      "name": "Legacy",
+      "currency": "USD",
+      "amount": 99,
+      "payment_failure_threshold": 1,
+      "auto_bill_outstanding": false
+    }
+  },
+  "subscriptions": [
+    {
+      "id": "SUB-1001",
+      "customer": "Acme Studio",
+      "plan_id": "P-PRO",
+      "status": "ACTIVE",
+      "currency": "USD",
+      "failed_payments_count": 0,
+      "outstanding_balance": 0,
+      "next_billing_time": "2026-11-05T10:00:00Z",
+      "last_failed_payment": null
+    },
+    {
+      "id": "SUB-1002",
+      "customer": "Northwind Labs",
+      "plan_id": "P-PRO",
+      "status": "SUSPENDED",
+      "currency": "USD",
+      "failed_payments_count": 2,
+      "outstanding_balance": 49,
+      "next_billing_time": "2026-11-02T10:00:00Z",
+      "last_failed_payment": {
+        "amount": 49,
+        "time": "2026-10-20T10:00:00Z",
+        "reason_code": "PAYMENT_DENIED",
+        "next_payment_retry_time": null
+      }
+    },
+    {
+      "id": "SUB-1003",
+      "customer": "Bluebird Co",
+      "plan_id": "P-STARTER",
+      "status": "ACTIVE",
+      "currency": "USD",
+      "failed_payments_count": 1,
+      "outstanding_balance": 19,
+      "next_billing_time": "2026-10-30T10:00:00Z",
+      "last_failed_payment": {
+        "amount": 19,
+        "time": "2026-10-25T10:00:00Z",
+        "reason_code": "PAYER_CANNOT_PAY",
+        "next_payment_retry_time": "2026-10-30T10:00:00Z"
+      }
+    },
+    {
+      "id": "SUB-1004",
+      "customer": "Old Guard LLC",
+      "plan_id": "P-LEGACY",
+      "status": "EXPIRED",
+      "currency": "USD",
+      "failed_payments_count": 3,
+      "outstanding_balance": 0,
+      "next_billing_time": null,
+      "last_failed_payment": {
+        "amount": 99,
+        "time": "2026-10-01T10:00:00Z",
+        "reason_code": "SUBSCRIBER_ACCOUNT_CLOSED",
+        "next_payment_retry_time": null
+      }
+    }
+  ]
+}
