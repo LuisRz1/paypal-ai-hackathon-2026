@@ -5,6 +5,9 @@
   "engines": {
     "node": ">=20.9"
   },
+  "overrides": {
+    "postcss": "8.5.32"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

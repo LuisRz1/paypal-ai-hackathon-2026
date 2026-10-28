@@ -133,6 +133,22 @@ button:disabled {
   margin-top: 16px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
 .timeline {
   margin: 24px 0 32px;
 }
@@ -200,4 +216,30 @@ button:disabled {
 .explain p {
   margin: 8px 0 0;
   color: #c9d1d9;
+}
+
+@media (max-width: 720px) {
+  main {
+    padding: 24px 12px 64px;
+  }
+
+  .timeline-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .timeline-meta {
+    text-align: left;
+  }
+
+  table {
+    font-size: 12px;
+    table-layout: fixed;
+  }
+
+  th,
+  td {
+    padding: 8px 8px;
+    overflow-wrap: anywhere;
+  }
 }

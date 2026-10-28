@@ -108,17 +108,20 @@ export default function Home() {
       {!seed ? (
         <p className="muted">Loading subscriptions…</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Subscription</th>
-              <th>Status</th>
-              <th>Outstanding</th>
-              <th>Next action</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Subscription</th>
+                <th scope="col">Status</th>
+                <th scope="col">Outstanding</th>
+                <th scope="col">Next action</th>
+                <th scope="col">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
             {seed.subscriptions.map((subscription) => {
               const plan = seed.plans[subscription.plan_id];
               const action = nextAction(subscription, plan);
@@ -150,7 +153,8 @@ export default function Home() {
               );
             })}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       {error && <p className="bad">{error}</p>}
