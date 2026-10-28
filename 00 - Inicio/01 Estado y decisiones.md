@@ -14,9 +14,10 @@ updated: 2026-10-27
 | Deadline | 12 nov 2026, 12:00 PT |
 | Días restantes | 15 (al 28 oct) |
 | Repo | `D:/SISTEMAS/PayPal-Hackathon` |
-| Fase | Validación / spike de sandbox |
+| Fase | Spike + esqueleto de app |
 | Modelo | Recover (pendiente spike de sandbox) |
 | Sponsor objetivo | Bryntum (propuesto) |
+| Readiness | 30/100 (research 20, repo 10, app 0, demo 0) |
 | Equipo | Pendiente de confirmar |
 | Licencia prevista | MIT |
 | Idioma de entrega | Inglés |
