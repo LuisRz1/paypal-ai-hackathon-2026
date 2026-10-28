@@ -14,7 +14,7 @@ updated: 2026-10-27
 | Deadline | 12 nov 2026, 12:00 PT |
 | Días restantes | 15 (al 28 oct) |
 | Repo | `D:/SISTEMAS/PayPal-Hackathon` |
-| Fase | Spike + esqueleto de app |
+| Fase | Freeze / blockers externos |
 | Modelo | Recover (pendiente spike de sandbox) |
 | Sponsor objetivo | Bryntum (propuesto) |
 | Readiness | 80/100 (research 20, repo 10, app 28, PayPal 6, AI 6, deploy 4, demo 6) |
