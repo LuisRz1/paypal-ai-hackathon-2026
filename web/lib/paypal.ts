@@ -38,6 +38,7 @@ export function createPayPalClient(config: PayPalConfig) {
 
     const response = await doFetch(`${config.baseUrl}/v1/oauth2/token`, {
       method: "POST",
+      signal: AbortSignal.timeout(8_000),
       headers: {
         authorization: `Basic ${Buffer.from(
           `${config.clientId}:${config.clientSecret}`,
@@ -70,6 +71,7 @@ export function createPayPalClient(config: PayPalConfig) {
 
     let response = await doFetch(`${config.baseUrl}${path}`, {
       ...init,
+      signal: AbortSignal.timeout(10_000),
       headers: {
         ...(init.headers ?? {}),
         authorization: `Bearer ${await accessToken()}`,
@@ -87,6 +89,7 @@ export function createPayPalClient(config: PayPalConfig) {
       await promise;
       response = await doFetch(`${config.baseUrl}${path}`, {
         ...init,
+        signal: AbortSignal.timeout(10_000),
         headers: {
           ...(init.headers ?? {}),
           authorization: `Bearer ${await accessToken()}`,

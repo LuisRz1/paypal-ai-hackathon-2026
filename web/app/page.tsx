@@ -206,8 +206,10 @@ export default function Home() {
               ? "VERIFIED"
               : approval.pendingVerification
                 ? "PENDING VERIFICATION"
-                : "NOT VERIFIED"}{" "}
-            · {approval.capture?.captureId}
+                : "NOT VERIFIED"}
+            {approval.capture?.captureId
+              ? ` · ${approval.capture.captureId}`
+              : ""}
           </div>
           <pre>{JSON.stringify(approval, null, 2)}</pre>
         </section>
