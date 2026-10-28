@@ -29,9 +29,10 @@ The vault uses wikilinks, tags, and YAML frontmatter. No plugins are required.
 ## Current status
 
 - Model: **Recover** — PayPal-native recovery for suspended subscriptions.
-- Sponsor target: **Bryntum** (proposed).
-- Application: early Next.js app in [`web/`](web/), mock-only, no PayPal calls yet.
+- Sponsor target: **none** (focus Grand/Impactful).
+- Application: Next.js app in [`web/`](web/), mock-first; real sandbox client implemented but not executed.
 - Research vault: complete; see `00 - Inicio/00 Inicio.md`.
+- Agent instructions: [`AGENTS.md`](AGENTS.md).
 
 ### Run the early app
 
