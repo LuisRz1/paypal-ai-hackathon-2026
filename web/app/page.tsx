@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { nextAction, type Plan, type Subscription } from "@/lib/state-machine";
+import type { Explanation } from "@/lib/explain";
 import type { LedgerEvent, Proposal } from "@/lib/store";
+import { Timeline } from "./timeline";
 
 interface Seed {
   plans: Record<string, Plan>;
@@ -20,6 +22,7 @@ export default function Home() {
   const [seed, setSeed] = useState<Seed | null>(null);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [approval, setApproval] = useState<Approval | null>(null);
+  const [explanation, setExplanation] = useState<Explanation | null>(null);
   const [events, setEvents] = useState<LedgerEvent[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,7 @@ export default function Home() {
     setBusy(subscriptionId);
     setError(null);
     setApproval(null);
+    setExplanation(null);
     try {
       const response = await fetch("/api/recover", {
         method: "POST",
@@ -54,6 +58,13 @@ export default function Home() {
         return;
       }
       setProposal(payload.proposal);
+      const explainResponse = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subscriptionId }),
+      });
+      const explainPayload = await explainResponse.json();
+      setExplanation(explainPayload.explanation ?? null);
     } finally {
       setBusy(null);
     }
@@ -91,6 +102,8 @@ export default function Home() {
         PayPal-native recovery for suspended subscriptions. The agent proposes; deterministic
         rules decide; a human approves; PayPal verifies. Sandbox and mock only.
       </p>
+
+      {seed && <Timeline subscriptions={seed.subscriptions} />}
 
       {!seed ? (
         <p className="muted">Loading subscriptions…</p>
@@ -151,6 +164,16 @@ export default function Home() {
           <div className="muted">
             {proposal.status} · request {proposal.requestId}
           </div>
+          {explanation && (
+            <div className="explain">
+              <strong>{explanation.summary}</strong>
+              <div>{explanation.likelyCause}</div>
+              <div className="muted">
+                Recommended: {explanation.recommendedAction} · {explanation.confidence}
+              </div>
+              <p>{explanation.playbook}</p>
+            </div>
+          )}
           <button
             onClick={approve}
             disabled={proposal.status !== "AWAITING_APPROVAL" || busy !== null}
