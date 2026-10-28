@@ -8,11 +8,13 @@ const seen = (globalWebhooks.__recoverWebhookEvents ??= {} as Record<string, tru
 
 export async function POST(request: Request) {
   const raw = await request.text();
-  const event = JSON.parse(raw) as {
-    id?: string;
-    event_type?: string;
-    resource?: { id?: string };
-  };
+  let event: { id?: string; event_type?: string; resource?: { id?: string } };
+
+  try {
+    event = JSON.parse(raw);
+  } catch {
+    return Response.json({ error: "invalid json" }, { status: 400 });
+  }
 
   if (!event.id || typeof event.id !== "string") {
     return Response.json({ error: "event id is required" }, { status: 400 });

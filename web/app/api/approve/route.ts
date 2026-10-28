@@ -17,6 +17,15 @@ export async function POST(request: Request) {
   if (!proposal) {
     return Response.json({ error: "proposal not found" }, { status: 404 });
   }
+
+  const requiredToken = process.env.APPROVER_TOKEN;
+  if (requiredToken) {
+    const provided = request.headers.get("authorization");
+    if (provided !== `Bearer ${requiredToken}`) {
+      return Response.json({ error: "unauthorized" }, { status: 401 });
+    }
+  }
+
   if (proposal.status !== "AWAITING_APPROVAL") {
     return Response.json(
       { error: `proposal is ${proposal.status}`, proposal },

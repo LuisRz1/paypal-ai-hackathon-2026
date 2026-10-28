@@ -1,7 +1,7 @@
 ---
 title: Guion del video
 tags: [ejecucion, video, demo]
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 # Guion del video
@@ -12,14 +12,13 @@ Duración objetivo: **2:45**. Límite: 3:00.
 
 | Tiempo | Visual | Voz / texto |
 |---|---|---|
-| 0:00–0:15 | Logo + problema | “Un merchant pierde horas persiguiendo pagos, refunds y disputas. La IA puede ayudar, pero no debería mover dinero sola.” |
-| 0:15–0:30 | Solución en una frase | “Construimos X: un agente que propone, un motor de reglas que decide y PayPal que verifica.” |
-| 0:30–0:50 | Intención del usuario | Mostrar la pregunta o comando real. |
-| 0:50–1:20 | Agente propone | Enseñar la propuesta, los datos y la razón. |
-| 1:20–1:45 | Aprobación y pago | Aprobar; checkout PayPal; confirmación. |
-| 1:45–2:10 | Fallo y recuperación | Forzar rechazo o webhook perdido; reconciliar. |
-| 2:10–2:30 | Verificación | Mostrar el ledger/read-back y el estado en PayPal. |
-| 2:30–2:45 | Impacto y cierre | Usuario, mercado, siguiente paso. |
+| 0:00–0:20 | Timeline con `SUB-1002` en rojo | “Un renewal falla. PayPal reintenta dos veces. El merchant no se entera y la suscripción se suspende.” |
+| 0:20–0:40 | Stats en pantalla | “El 26% del churn es involuntario. La recuperación mediana es 47.6%. El problema no es el reintento: es lo que pasa después.” |
+| 0:40–1:10 | Timeline + detalle | Mostrar saldo $49, `PAYMENT_DENIED`, próximo retry y estado `SUSPENDED`. |
+| 1:10–1:40 | Explicación del agente | “PayPal declined the payment” + causa + acción recomendada + playbook. |
+| 1:40–2:05 | Aprobación y captura | Click “Approve recovery”; mostrar `CAPTURE 49.00 USD` y el `requestId`. |
+| 2:05–2:25 | Read-back y ledger | `VERIFIED`, `captureId`, eventos `proposal / capture / verify`. |
+| 2:25–2:45 | Impacto y cierre | “PayPal ya reintenta. Recover hace que el merchant actúe sobre el saldo antes de que el suscriptor se vaya.” |
 
 ## Checklist de grabación
 

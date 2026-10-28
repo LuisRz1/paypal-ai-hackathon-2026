@@ -6,6 +6,7 @@ services:
     plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm run start -- -p $PORT
+    healthCheckPath: /api/health
     envVars:
       - key: PAYPAL_API_BASE
         value: https://api-m.sandbox.paypal.com

@@ -28,6 +28,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const pending = Object.values(proposals).find(
+    (item) =>
+      item.subscriptionId === subscriptionId && item.status === "AWAITING_APPROVAL",
+  );
+  if (pending) {
+    return Response.json(
+      { error: "a proposal is already awaiting approval", proposal: pending },
+      { status: 409 },
+    );
+  }
+
   const createdAt = new Date().toISOString();
   const proposal: Proposal = {
     id: crypto.randomUUID(),

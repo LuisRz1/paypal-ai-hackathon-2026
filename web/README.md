@@ -41,6 +41,12 @@ Open http://localhost:3100.
 
 Copy `.env.example` to `.env.local` and fill the sandbox values. Without `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`, the app uses the mock.
 
+Security notes:
+
+- `APPROVER_TOKEN` is optional; set it in a deployed environment and send `Authorization: Bearer <token>` to `/api/approve`.
+- The proposal and ledger stores are in memory and reset on restart.
+- This is sandbox/mock only; do not point it at live PayPal.
+
 ## Next
 
 - Run the sandbox `OUTSTANDING_BALANCE` capture with real credentials.
