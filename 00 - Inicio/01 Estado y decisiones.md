@@ -17,7 +17,7 @@ updated: 2026-10-27
 | Fase | Freeze / blockers externos |
 | Modelo | Recover (pendiente spike de sandbox) |
 | Sponsor objetivo | Ninguno (foco Grand/Impactful) |
-| Readiness | 89/100 (research 20, repo 10, app 29, PayPal 9, AI 6, deploy 5, demo 10) |
+| Readiness | 90/100 (research 20, repo 10, app 30, PayPal 9, AI 6, deploy 5, demo 10) |
 | Toolchain | Node 22.23, npm 10.9.8, Python 3.12.9, git 2.53 |
 | Spike | 16/16 tests; estado y errores verificados |
 | App | Approval + ledger + mock PayPal verificados en navegador |
@@ -37,6 +37,7 @@ updated: 2026-10-27
 | Docs | Esquema, arquitectura y submission alineados con el código actual |
 | Hardening | Stores null-prototype; sin CORS cross-origin; sin rate limit (demo) |
 | Runtime | Node 22+ (Promise.withResolvers); Render NODE_VERSION=22 |
+| Headers | nosniff, DENY, referrer, permissions, HSTS; sin X-Powered-By |
 | Sponsor | Ninguno; sin tool integrada, no elegible para sponsor prizes |
 | Submission | `SUBMISSION.md` draft + `web/DEMO.md`; screenshot listo, video/URL pendientes |
 | Equipo | Pendiente de confirmar |
