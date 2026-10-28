@@ -12,7 +12,7 @@ updated: 2026-10-27
 |---|---|
 | Hackathon | PayPal AI Hackathon 2026 |
 | Deadline | 12 nov 2026, 12:00 PT |
-| Días restantes | 16 (al 27 oct) |
+| Días restantes | 15 (al 28 oct) |
 | Repo | `D:/SISTEMAS/PayPal-Hackathon` |
 | Fase | Ideación / selección de modelo |
 | Modelo | Pendiente |

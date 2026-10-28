@@ -1,10 +1,12 @@
 ---
 title: Auditoría en 3 iteraciones
 tags: [github, auditoria, diferenciadores, estrategia]
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 # Auditoría en 3 iteraciones
+
+> Ronda 2 y red team: [[43 Red team - Renewal Radar]].
 
 Ventana: ~30 min. Tres pasadas con método distinto sobre 100 repos que mencionan el hackathon (310 en total en GitHub) y lectura profunda de los 15 más serios.
 
