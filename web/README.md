@@ -4,6 +4,8 @@ Early Next.js app for the PayPal AI Hackathon. Sandbox/mock only; no PayPal call
 
 ## Run
 
+Requires Node.js 22+ (`Promise.withResolvers`).
+
 ```bash
 cd web
 npm install

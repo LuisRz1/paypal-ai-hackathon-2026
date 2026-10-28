@@ -8,6 +8,8 @@ services:
     startCommand: npm run start -- -p $PORT
     healthCheckPath: /api/health
     envVars:
+      - key: NODE_VERSION
+        value: "22"
       - key: PAYPAL_API_BASE
         value: https://api-m.sandbox.paypal.com
       - key: ALLOW_UNVERIFIED_WEBHOOKS

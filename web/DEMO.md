@@ -4,6 +4,8 @@ Sandbox/mock only. No real money.
 
 ## Run
 
+Requires Node.js 22+.
+
 ```bash
 cd web
 npm install
