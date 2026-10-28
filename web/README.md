@@ -35,6 +35,7 @@ Open http://localhost:3100.
 - Mock PayPal capture with the 8 provider errors.
 - Real sandbox client (`web/lib/paypal.ts`) with OAuth, capture, activate and webhook verification.
 - Reads retry `429`/`5xx`; capture and activate POSTs do not retry on `5xx`.
+- Uncertain capture outcomes become `PENDING_VERIFICATION`; a new proposal is blocked until reconciliation.
 - In-memory proposals and ledger.
 - Mock UI; no real money.
 

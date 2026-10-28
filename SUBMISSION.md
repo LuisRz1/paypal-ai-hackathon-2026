@@ -47,6 +47,7 @@ Recover reads the subscription, explains the failure reason, proposes one recove
 - PayPal sandbox client code (OAuth, capture, activate, webhook verification).
 - Webhook dedupe and malformed-input handling.
 - Read requests retry `429`/`5xx`; capture and activate POSTs do **not** retry on `5xx`, to avoid a double capture.
+- Uncertain capture outcomes are marked `PENDING_VERIFICATION`, not `FAILED`; a repeated recovery is blocked until reconciliation.
 
 **Mock:**
 

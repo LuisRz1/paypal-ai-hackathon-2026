@@ -2,7 +2,7 @@ import seed from "@/seed.json";
 import { validateCapture, type Plan, type Subscription } from "@/lib/state-machine";
 import { captureOutstandingBalance } from "@/lib/paypal-mock";
 import { createPayPalClient, type PayPalCaptureResult } from "@/lib/paypal";
-import { ledger, proposals, type LedgerEvent } from "@/lib/store";
+import { ledger, proposals, recovered, type LedgerEvent } from "@/lib/store";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -98,18 +98,21 @@ export async function POST(request: Request) {
           scenario: body?.scenario,
         });
   } catch (error) {
-    proposal.status = "FAILED";
+    proposal.status = "PENDING_VERIFICATION";
     const failure: LedgerEvent = {
       id: crypto.randomUUID(),
       type: "failure",
       proposalId: proposal.id,
       at: new Date().toISOString(),
-      detail: { error: error instanceof Error ? error.message : String(error) },
+      detail: {
+        error: error instanceof Error ? error.message : String(error),
+        uncertain: true,
+      },
     };
     ledger.push(failure);
     return Response.json(
-      { error: "PayPal request failed", proposal, ledger: [failure] },
-      { status: 502 },
+      { error: "PayPal outcome uncertain", pendingVerification: true, proposal, ledger: [failure] },
+      { status: 202 },
     );
   }
 
@@ -125,17 +128,38 @@ export async function POST(request: Request) {
             status: capture.status,
             requestId: proposal.requestId,
           }
-        : { issue: capture.issue, requestId: proposal.requestId },
+        : {
+            issue: capture.issue,
+            httpStatus: capture.httpStatus,
+            requestId: proposal.requestId,
+            uncertain:
+              capture.httpStatus === undefined || capture.httpStatus >= 500,
+          },
     },
   ];
 
   if (!capture.ok) {
-    proposal.status = "FAILED";
+    const uncertain =
+      capture.httpStatus === undefined || capture.httpStatus >= 500;
+    proposal.status = uncertain ? "PENDING_VERIFICATION" : "FAILED";
     ledger.push(...events);
-    return Response.json({ error: capture.issue, proposal, ledger: events }, { status: 422 });
+    return Response.json(
+      {
+        error: capture.issue,
+        pendingVerification: uncertain,
+        proposal,
+        ledger: events,
+      },
+      { status: uncertain ? 202 : 422 },
+    );
+  }
+
+  if (!paypalClient) {
+    recovered[subscription.id] = true;
   }
 
   let verified = capture.status === "COMPLETED";
+  let uncertain = false;
 
   if (verified && paypalClient) {
     try {
@@ -151,21 +175,40 @@ export async function POST(request: Request) {
           "Outstanding balance recovered",
         );
         verified = activation.ok;
+        if (!verified) {
+          uncertain = true;
+        }
+      } else if (!verified) {
+        uncertain = true;
       }
     } catch {
       verified = false;
+      uncertain = true;
     }
   }
 
-  proposal.status = verified ? "VERIFIED" : "FAILED";
+  proposal.status = verified
+    ? "VERIFIED"
+    : uncertain
+      ? "PENDING_VERIFICATION"
+      : "FAILED";
   events.push({
     id: crypto.randomUUID(),
     type: "verify",
     proposalId: proposal.id,
     at: new Date().toISOString(),
-    detail: { captureId: capture.captureId, verified },
+    detail: { captureId: capture.captureId, verified, uncertain },
   });
   ledger.push(...events);
 
-  return Response.json({ proposal, capture, verified, ledger: events });
+  return Response.json(
+    {
+      proposal,
+      capture,
+      verified,
+      pendingVerification: uncertain,
+      ledger: events,
+    },
+    { status: verified ? 200 : uncertain ? 202 : 422 },
+  );
 }

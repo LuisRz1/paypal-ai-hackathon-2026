@@ -12,6 +12,7 @@ export interface PayPalCaptureResult {
   status?: string;
   issue?: string;
   debugId?: string;
+  httpStatus?: number;
 }
 
 const SANDBOX_HOST = "api-m.sandbox.paypal.com";
@@ -142,6 +143,7 @@ export function createPayPalClient(config: PayPalConfig) {
         ok: false,
         issue: body?.details?.[0]?.issue ?? body?.name ?? "UNKNOWN",
         debugId: body?.debug_id,
+        httpStatus: response.status,
       };
     }
 

@@ -15,6 +15,7 @@ interface Approval {
   proposal: Proposal;
   capture?: { captureId?: string; status?: string };
   verified?: boolean;
+  pendingVerification?: boolean;
   ledger?: LedgerEvent[];
 }
 
@@ -195,7 +196,12 @@ export default function Home() {
         <section className="result" aria-live="polite">
           <strong>Execution</strong>
           <div className="action">
-            {approval.verified ? "VERIFIED" : "NOT VERIFIED"} · {approval.capture?.captureId}
+            {approval.verified
+              ? "VERIFIED"
+              : approval.pendingVerification
+                ? "PENDING VERIFICATION"
+                : "NOT VERIFIED"}{" "}
+            · {approval.capture?.captureId}
           </div>
           <pre>{JSON.stringify(approval, null, 2)}</pre>
         </section>

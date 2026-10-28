@@ -1,6 +1,6 @@
 import seed from "@/seed.json";
 import { nextAction, type Plan, type Subscription } from "@/lib/state-machine";
-import { ledger, proposals, type LedgerEvent, type Proposal } from "@/lib/store";
+import { ledger, proposals, recovered, type LedgerEvent, type Proposal } from "@/lib/store";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -18,6 +18,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "subscription not found" }, { status: 404 });
   }
 
+  if (recovered[subscriptionId]) {
+    return Response.json(
+      { error: "subscription already recovered in this mock session" },
+      { status: 409 },
+    );
+  }
+
   const plan = (seed.plans as Record<string, Plan>)[subscription.plan_id];
   const action = nextAction(subscription, plan);
 
@@ -30,7 +37,8 @@ export async function POST(request: Request) {
 
   const pending = Object.values(proposals).find(
     (item) =>
-      item.subscriptionId === subscriptionId && item.status === "AWAITING_APPROVAL",
+      item.subscriptionId === subscriptionId &&
+      (item.status === "AWAITING_APPROVAL" || item.status === "PENDING_VERIFICATION"),
   );
   if (pending) {
     return Response.json(
