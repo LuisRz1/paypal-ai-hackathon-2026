@@ -1,0 +1,129 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0b0f14;
+  color: #e6edf3;
+}
+
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 40px;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  margin: 0 0 32px;
+  color: #8b949e;
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #111820;
+  border: 1px solid #212b36;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid #212b36;
+  font-size: 14px;
+}
+
+th {
+  color: #8b949e;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ACTIVE {
+  background: #12351f;
+  color: #7ee787;
+}
+
+.SUSPENDED {
+  background: #3d1d1d;
+  color: #ff7b72;
+}
+
+.EXPIRED {
+  background: #2b2b2b;
+  color: #a1a1aa;
+}
+
+.CANCELLED {
+  background: #2b2b2b;
+  color: #a1a1aa;
+}
+
+.action {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+
+button {
+  background: #1f6feb;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #212b36;
+  border-radius: 12px;
+  background: #111820;
+}
+
+.result pre {
+  margin: 8px 0 0;
+  overflow: auto;
+  font-size: 13px;
+  color: #8b949e;
+}
+
+.muted {
+  color: #8b949e;
+}

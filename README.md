@@ -28,10 +28,21 @@ The vault uses wikilinks, tags, and YAML frontmatter. No plugins are required.
 
 ## Current status
 
-- Model selection: **pending** (see `06 - Modelos/60 Comparativa.md`).
-- Sponsor target: **pending** (see `03 - Sponsors/30 Mapa de sponsors.md`).
-- Application code: not started.
-- This repository currently contains the research vault only.
+- Model: **Recover** — PayPal-native recovery for suspended subscriptions.
+- Sponsor target: **Bryntum** (proposed).
+- Application: early Next.js app in [`web/`](web/), mock-only, no PayPal calls yet.
+- Research vault: complete; see `00 - Inicio/00 Inicio.md`.
+
+### Run the early app
+
+```bash
+cd web
+npm install
+npm run build
+npm run start -- -p 3100
+```
+
+Open http://localhost:3100. `GET /api/seed` and `POST /api/recover` are mock endpoints.
 
 ## Rules of the project
 
