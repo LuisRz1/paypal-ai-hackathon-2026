@@ -23,18 +23,19 @@ The vault uses wikilinks, tags, and YAML frontmatter. No plugins are required.
 | `04 - Referencia GitHub` | GitHub landscape analysis and key repos |
 | `05 - Patrones` | Canonical architecture, trust patterns, demo and delivery |
 | `06 - Modelos` | Four project models and a weighted comparison |
-| `07 - Ejecucion` | Stack, 16-day backlog, video script, data schema |
+| `07 - Ejecucion` | Stack, backlog, video script, data schema, Recover Control Plane |
 | `08 - Referencias` | Links and glossary |
 
 ## Current status
 
-- Model: **Recover** — PayPal-native recovery for suspended subscriptions.
+- Model: **Recover Control Plane** — AI-compiled, human-approved PayPal recovery with signed evidence.
 - Sponsor target: **none** (focus Grand/Impactful).
-- Application: Next.js app in [`web/`](web/), mock-first; real sandbox client implemented but not executed.
+- Application: Next.js app in [`web/`](web/), mock-first; policy compiler, 288-case simulator, single-use capabilities and signed passports implemented. Real sandbox capture not executed.
+- Architecture: [`web/CONTROL_PLANE.md`](web/CONTROL_PLANE.md).
 - Research vault: complete; see `00 - Inicio/00 Inicio.md`.
 - Agent instructions: [`AGENTS.md`](AGENTS.md).
 
-### Run the early app
+### Run the control plane
 
 ```bash
 cd web
@@ -43,7 +44,7 @@ npm run build
 npm run start -- -p 3100
 ```
 
-Open http://localhost:3100. `GET /api/seed` and `POST /api/recover` are mock endpoints.
+Open http://localhost:3100. Start with **Mandate**, run the 288-case simulation, then review `SUB-1002` under **Recoveries**. See [`web/DEMO.md`](web/DEMO.md).
 
 ## Rules of the project
 

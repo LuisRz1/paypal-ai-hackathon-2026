@@ -1,7 +1,7 @@
 ---
 title: Inicio
 tags: [moc, paypal, hackathon]
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 # Cerebro · PayPal AI Hackathon
@@ -12,10 +12,10 @@ Vault de trabajo para el **PayPal AI Hackathon 2026**. Reúne reglas, documentac
 
 ## Estado
 
-- Repo: `D:/SISTEMAS/PayPal-Hackathon` (vacío al crear el vault).
-- Fase: ideación / selección de modelo.
-- Modelo elegido: **pendiente** → [[60 Comparativa]].
-- Próxima acción: elegir modelo A/B/C/D y cerrar el alcance del MVP.
+- Repo: `D:/SISTEMAS/PayPal-Hackathon`.
+- Fase: **Recover Control Plane implementado en mock**; blockers externos de sandbox, deploy y video.
+- Modelo elegido: **Recover Control Plane** → [[74 Recover Control Plane]].
+- Próxima acción: captura real en sandbox, deploy y grabación.
 
 ## Mapa
 
@@ -29,7 +29,7 @@ Vault de trabajo para el **PayPal AI Hackathon 2026**. Reúne reglas, documentac
 | Referencia GitHub | [[40 Landscape]] · [[41 Repos clave]] · [[42 Auditoria 3 iteraciones]] · [[43 Red team - Renewal Radar]] · [[44 Tercera ronda - Verificacion y pre-mortem]] · [[45 Cuarta ronda - Teardown API y readiness]] · [[46 Quinta ronda - Seguridad confiabilidad y narrativa]] · [[47 Sexta ronda - Errores tests y legal]] · [[48 Septima ronda - Entorno demo y assets]] · [[49 Octava ronda - Spike ejecutable]] · [[50 Novena ronda - App ejecutable]] · [[51 Decima ronda - Approval y ledger]] · [[52 Undecima ronda - Sandbox y webhooks]] · [[53 Duodecima ronda - Explicador y timeline]] · [[54 Decimotercera ronda - LLM opcional y deploy]] · [[55 Decimocuarta ronda - Seguridad deploy y demo]] · [[56 Decimoquinta ronda - Dependencias a11y y movil]] · [[57 Decimosexta ronda - API clean build y submission]] · [[58 Decimoseptima ronda - Concurrencia retry y screenshot]] · [[59 Decimoctava ronda - Freeze y submission]] · [[60 Decimonovena ronda - Retry seguro performance y docs]] · [[61 Vigesima ronda - Matriz estados live regions y teclado]] · [[62 Vigesima primera ronda - Sponsor impacto y go-no-go]] · [[63 Vigesima segunda ronda - Outcomes inciertos y mock idempotente]] · [[64 Vigesima tercera ronda - Runner de sandbox]] · [[65 Vigesima cuarta ronda - Tests del runner de sandbox]] · [[66 Vigesima quinta ronda - Auth fail-closed y timeout]] · [[67 Vigesima sexta ronda - Timeouts y UI pendiente]] · [[68 Vigesima septima ronda - Carga y concurrencia]] · [[69 Vigesima septima bis - Documentacion vs codigo]] · [[70 Vigesima octava ronda - Prototype keys CORS y rate limit]] · [[71 Vigesima novena ronda - Node 22 y dependencias]] · [[72 Trigesima ronda - Security headers]] · [[73 Trigesima primera ronda - Render blueprint audit]] |
 | Patrones | [[50 Arquitectura canonica]] · [[51 Patrones de confianza]] · [[52 Demo y entrega]] |
 | Modelos | [[60 Comparativa]] · [[61 Modelo A Merchant CFO]] · [[62 Modelo B Scheduler]] · [[63 Modelo C Storefront]] · [[64 Modelo D Disputas]] |
-| Ejecución | [[70 Stack y estructura]] · [[71 Backlog 16 dias]] · [[72 Guion del video]] · [[73 Esquema de datos]] |
+| Ejecución | [[70 Stack y estructura]] · [[71 Backlog 16 dias]] · [[72 Guion del video]] · [[73 Esquema de datos]] · [[74 Recover Control Plane]] |
 | Referencias | [[80 Enlaces]] · [[81 Glosario]] |
 
 ## Regla de oro

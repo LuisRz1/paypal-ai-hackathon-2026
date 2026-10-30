@@ -1,6 +1,8 @@
 import seed from "@/seed.json";
-import { nextAction, type Plan, type Subscription } from "@/lib/state-machine";
-import { ledger, proposals, recovered, type LedgerEvent, type Proposal } from "@/lib/store";
+import { evaluatePolicy } from "@/lib/policy";
+import { getActivePolicy } from "@/lib/policy-store";
+import type { Plan, Subscription } from "@/lib/state-machine";
+import { proposals, recovered, recordLedger } from "@/lib/store";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -13,11 +15,9 @@ export async function POST(request: Request) {
   const subscription = (seed.subscriptions as Subscription[]).find(
     (item) => item.id === subscriptionId,
   );
-
   if (!subscription) {
     return Response.json({ error: "subscription not found" }, { status: 404 });
   }
-
   if (recovered[subscriptionId]) {
     return Response.json(
       { error: "subscription already recovered in this mock session" },
@@ -25,9 +25,9 @@ export async function POST(request: Request) {
     );
   }
 
+  const active = getActivePolicy();
   const plan = (seed.plans as Record<string, Plan>)[subscription.plan_id];
-  const action = nextAction(subscription, plan);
-
+  const action = evaluatePolicy(subscription, plan, active.policy);
   if (action.action !== "CAPTURE") {
     return Response.json(
       { error: `No capture proposed for ${subscriptionId}`, action },
@@ -38,17 +38,17 @@ export async function POST(request: Request) {
   const pending = Object.values(proposals).find(
     (item) =>
       item.subscriptionId === subscriptionId &&
-      (item.status === "AWAITING_APPROVAL" || item.status === "PENDING_VERIFICATION"),
+      ["AWAITING_APPROVAL", "EXECUTED", "PENDING_VERIFICATION"].includes(item.status),
   );
   if (pending) {
     return Response.json(
-      { error: "a proposal is already awaiting approval", proposal: pending },
+      { error: "an active proposal already exists", proposal: pending },
       { status: 409 },
     );
   }
 
   const createdAt = new Date().toISOString();
-  const proposal: Proposal = {
+  const proposal = {
     id: crypto.randomUUID(),
     subscriptionId,
     action: action.action,
@@ -56,14 +56,14 @@ export async function POST(request: Request) {
     currency: subscription.currency,
     note: "Outstanding balance recovered",
     outstanding: subscription.outstanding_balance,
-    status: "AWAITING_APPROVAL",
+    status: "AWAITING_APPROVAL" as const,
     requestId: crypto.randomUUID(),
+    policyHash: active.hash,
     createdAt,
   };
-
   proposals[proposal.id] = proposal;
 
-  const proposalEvent: LedgerEvent = {
+  recordLedger({
     id: crypto.randomUUID(),
     type: "proposal",
     proposalId: proposal.id,
@@ -73,9 +73,10 @@ export async function POST(request: Request) {
       amount: proposal.amount,
       currency: proposal.currency,
       requestId: proposal.requestId,
+      policyHash: active.hash,
+      policyRuleId: action.policyRuleId,
     },
-  };
-  ledger.push(proposalEvent);
+  });
 
   return Response.json({ proposal, action });
 }

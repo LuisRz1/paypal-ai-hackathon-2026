@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "Recover",
-  description: "PayPal-native recovery for suspended subscriptions",
+  description: "AI-compiled, human-approved PayPal recovery with verifiable evidence",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

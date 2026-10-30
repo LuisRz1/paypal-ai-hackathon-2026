@@ -1,5 +1,5 @@
 import { createPayPalClient } from "@/lib/paypal";
-import { ledger, type LedgerEvent } from "@/lib/store";
+import { recordLedger } from "@/lib/store";
 
 const globalWebhooks = globalThis as unknown as {
   __recoverWebhookEvents?: Record<string, true>;
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const entry: LedgerEvent = {
+  recordLedger({
     id: crypto.randomUUID(),
     type: "webhook",
     proposalId: "",
@@ -58,8 +58,7 @@ export async function POST(request: Request) {
       eventType: event.event_type,
       resourceId: event.resource?.id,
     },
-  };
-  ledger.push(entry);
+  });
 
   return Response.json({ received: true });
 }

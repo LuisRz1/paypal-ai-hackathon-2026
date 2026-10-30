@@ -67,7 +67,11 @@ const approvals = await Promise.all(
           "content-type": "application/json",
           authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ proposalId: winner.proposalId }),
+        body: JSON.stringify({
+          proposalId: winner.proposalId,
+          confirmed: true,
+          approvedBy: "load-check",
+        }),
       });
       const body = await response.json();
       return { status: response.status, state: body.proposal?.status };

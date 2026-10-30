@@ -4,57 +4,59 @@ tags: [ejecucion, video, demo]
 updated: 2026-10-28
 ---
 
-# Guion del video
+# Guion del video · Recover Control Plane
 
-Duración objetivo: **2:45**. Límite: 3:00.
+Duración objetivo: **2:45**. Límite: 3:00. **Pendiente de grabar.**
 
 ## Guion
 
 | Tiempo | Visual | Voz / texto |
 |---|---|---|
-| 0:00–0:20 | Timeline con `SUB-1002` en rojo | “Un renewal falla. PayPal reintenta dos veces. El merchant no se entera y la suscripción se suspende.” |
-| 0:20–0:40 | Stats en pantalla | “El 26% del churn es involuntario. La recuperación mediana es 47.6%. El problema no es el reintento: es lo que pasa después.” |
-| 0:40–1:10 | Timeline + detalle | Mostrar saldo $49, `PAYMENT_DENIED`, próximo retry y estado `SUSPENDED`. |
-| 1:10–1:40 | Explicación del agente | “PayPal declined the payment” + causa + acción recomendada + playbook. |
-| 1:40–2:05 | Aprobación y captura | Click “Approve recovery”; mostrar `CAPTURE 49.00 USD` y el `requestId`. |
-| 2:05–2:25 | Read-back y ledger | `VERIFIED`, `captureId`, eventos `proposal / capture / verify`. |
-| 2:25–2:45 | Impacto y cierre | “PayPal ya reintenta. Recover hace que el merchant actúe sobre el saldo antes de que el suscriptor se vaya.” |
+| 0:00–0:20 | Suscripción suspendida y saldo en Recoveries | “PayPal retries a failed renewal. When retries stop, the merchant still has a suspended subscription and an outstanding balance. Recover handles that state without giving AI unchecked authority.” |
+| 0:20–0:45 | Mandate + Compile | “The merchant writes the recovery mandate. AI compiles it into a constrained policy. Without an LLM key, Recover says Deterministic instead of pretending a model ran.” |
+| 0:45–1:10 | Run 288 checks + invariants | “Before activation, Recover attacks the policy with 288 combinations of status, balance, failures, thresholds and currencies. The goal is not a happy path; it is proof that unsafe actions stay blocked.” |
+| 1:10–1:30 | Checkbox + Sign and activate | “The human reviews and signs this exact policy version. The server repeats the simulation. Browser claims are not trusted.” |
+| 1:30–1:50 | `SUB-1002` + explicación | “This suspended subscription has a 49 dollar outstanding balance. Recover explains the failure and prepares a proposal under the signed policy hash.” |
+| 1:50–2:10 | Approval mandate + checkbox | “Approval is explicit and exact. It creates a single-use capability bound to subscription, amount, currency, policy and request ID. The AI cannot press this button.” |
+| 2:10–2:30 | Evidence + Verify integrity | “The receipt records capture and read-back. The passport includes the policy, approval, PayPal outcome and complete hash-chained ledger, signed with Ed25519. All six integrity checks pass.” |
+| 2:30–2:45 | Download JSON + cierre | “AI investigates. Code decides. A human approves. PayPal verifies. Recover returns proof, not just a success label.” |
+
+## Si se graba sin credenciales
+
+Decir explícitamente: **“This run uses the mock provider.”** La pantalla debe mostrar `Mock environment` y `Verified by mock read-back`. No cortar esos badges ni presentar el capture ID como evidencia real de PayPal.
+
+Con credenciales sandbox, utilizar primero `web/scripts/sandbox-check.mjs --execute --save` y guardar la evidencia generada. No afirmar que esa captura existe hasta haberla ejecutado.
 
 ## Checklist de grabación
 
 - [ ] 1080p o superior.
-- [ ] Escritorio limpio, sin notificaciones.
-- [ ] Datos seed, no vacíos.
-- [ ] Sin secretos visibles.
-- [ ] Cursor visible y zoom en lo importante.
-- [ ] Audio claro; subtítulos en inglés.
-- [ ] Una sola toma principal + inserts.
+- [ ] Escritorio limpio, sin notificaciones ni secretos.
+- [ ] Servidor fresco y datos seed cargados.
+- [ ] Timeline de cuatro filas visible en Recoveries.
+- [ ] 288/288 y las seis invariantes visibles.
+- [ ] Checkbox de activación y de captura visibles antes del click.
+- [ ] Estado mock/sandbox legible durante toda la ejecución.
+- [ ] Seis checks de integridad visibles.
+- [ ] Audio claro y subtítulos en inglés.
+- [ ] Una toma principal + inserts de simulación y evidencia.
 
 ## Edición
 
 - Cortes secos, sin música con copyright.
-- Texto en pantalla para los 3 pasos clave.
-- Mostrar el nombre del sponsor y la API usada.
-- No acelerar tanto que no se entienda.
+- Mostrar `policyHash`, `requestId` y `capabilityHash` con zoom, sin exponer secretos.
+- No enseñar código ni empezar por arquitectura.
+- No superar 3:00.
 - Exportar MP4 H.264.
 
 ## YouTube
 
-- Título: `ProjectName — PayPal AI Hackathon 2026`.
-- Descripción: problema, stack, repo, demo.
+- Título: `Recover Control Plane — PayPal AI Hackathon 2026`.
+- Descripción: problema, policy compiler, PayPal Subscriptions, human approval, evidencia y repo.
 - Visibilidad: **público**.
-- Miniatura legible.
-
-## Errores a evitar
-
-- Empezar con arquitectura.
-- Enseñar código.
-- Demo sin voz.
-- Video de 4 minutos.
-- Música o marcas sin permiso.
-- Mostrar un mock como si fuera real.
+- Miniatura legible con “AI proposes. Human approves. PayPal verifies.”
 
 ## Enlaces
 
+- [[74 Recover Control Plane]]
 - [[52 Demo y entrega]]
 - [[12 Checklist de entrega]]

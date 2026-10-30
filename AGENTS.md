@@ -27,14 +27,14 @@ The app is **mock-first**. A real PayPal sandbox client exists, but a live sandb
 
 Flow:
 
-1. Detect a failed subscription payment.
-2. Explain the PayPal `reason_code`.
-3. Propose capturing the `outstanding_balance`.
-4. Require explicit human approval.
-5. Capture with `capture_type: OUTSTANDING_BALANCE`.
-6. Read the subscription back.
-7. Activate if still suspended.
-8. Append a ledger entry.
+1. Compile merchant intent into a constrained, versioned recovery policy.
+2. Simulate 288 cases and require zero violations before signed activation.
+3. Detect a failed subscription payment and explain the PayPal `reason_code`.
+4. Propose capturing the `outstanding_balance` under the active policy hash.
+5. Require explicit human confirmation and consume a single-use capability bound to the exact operation.
+6. Capture with `capture_type: OUTSTANDING_BALANCE`.
+7. Read the subscription back and activate if still suspended.
+8. Append hash-chained ledger entries and issue an Ed25519-signed recovery passport.
 
 **Pitch:** “PayPal already retries. Recover makes the merchant act on the outstanding balance before the subscriber churns.”
 
@@ -67,7 +67,9 @@ These are architectural rules, not preferences.
 
 5. **Human approval.**
    - `/api/recover` creates `AWAITING_APPROVAL`.
-   - `/api/approve` is the only route that executes a capture.
+   - `/api/approve` is the only route that executes a capture and requires `confirmed: true`.
+   - Approval issues and consumes a single-use HMAC capability bound to proposal, subscription, decimal amount, currency, policy hash and request ID.
+   - Capability replay is rejected; uncertain outcomes cannot be re-approved blindly.
    - `APPROVER_TOKEN` is optional, but if set, `/api/approve` requires `Authorization: Bearer <token>`.
 
 6. **Idempotency and dedupe.**
@@ -82,9 +84,15 @@ These are architectural rules, not preferences.
    - If status is still `SUSPENDED`, call `/activate`.
 
 8. **Honest state.**
-   - Never label a mock capture as real.
+   - Never label a mock capture or mock read-back as real PayPal evidence.
    - Never claim sandbox evidence that was not executed.
    - `SUBMISSION.md` distinguishes real vs mock.
+
+9. **Verifiable evidence.**
+   - Ledger events are appended with sequence, previous hash and content hash.
+   - Recovery passports include the complete chain and an Ed25519 signature.
+   - Policy activation repeats the 288-case simulation server-side.
+   - Process-local keys and stores are demo limits, not persistent trust anchors.
 
 ---
 
@@ -129,7 +137,7 @@ render.yaml               blueprint de Render
 | UI | React 19.3.1 + TypeScript 5.9.3 |
 | Styles | CSS plano en `web/app/globals.css` |
 | PayPal | REST + `fetch`, sin SDK de servidor |
-| IA | Explicador determinista; LLM opcional OpenAI-compatible |
+| IA | Policy compiler and failure explainer with deterministic fallbacks; optional OpenAI-compatible LLM |
 | Persistencia | En memoria (demo) |
 | Deploy | Render (`render.yaml`) |
 
@@ -164,9 +172,15 @@ npm run start -- -p 3100
 
 | Method | Route | Purpose | Auth |
 |---|---|---|---|
-| GET | `/api/seed` | 4 seeded subscriptions + metadata | none |
+| GET | `/api/policies/active` | Active policy version and hashes | none |
+| POST | `/api/policies/compile` | Compile and validate merchant intent | none |
+| POST | `/api/policies/simulate` | Run the 288-case policy simulation | none |
+| POST | `/api/policies/activate` | Re-simulate and activate with explicit signature | none |
+| GET | `/api/seed` | 4 seeded subscriptions + policy decisions | none |
 | POST | `/api/recover` | Create `AWAITING_APPROVAL` proposal | none |
-| POST | `/api/approve` | Validate, capture, verify, ledger | `APPROVER_TOKEN` if set |
+| POST | `/api/approve` | Confirm, consume capability, capture, verify, ledger | `APPROVER_TOKEN` if set |
+| GET | `/api/evidence/{proposalId}` | Signed recovery passport | none |
+| POST | `/api/evidence/verify` | Verify passport and ledger integrity | none |
 | POST | `/api/explain` | Deterministic/LLM `reason_code` explanation | none |
 | GET | `/api/ledger` | Proposal/capture/verify/webhook events | none |
 | GET | `/api/health` | Config and ledger status | none |
@@ -176,7 +190,7 @@ npm run start -- -p 3100
 
 ```json
 POST /api/recover   { "subscriptionId": "SUB-1002" }
-POST /api/approve   { "proposalId": "uuid" }
+POST /api/approve   { "proposalId": "uuid", "confirmed": true, "approvedBy": "Demo merchant" }
 POST /api/explain   { "subscriptionId": "SUB-1002" }
 ```
 
@@ -318,6 +332,12 @@ node --experimental-strip-types web/scripts/paypal-smoke.mjs
 # Runner: dry run, execute, zero balance, unknown, live refusal
 node --test web/scripts/sandbox-check.test.mjs
 
+# Policy, simulation, capability, evidence and explainers
+npx tsx --test web/lib/policy.test.mjs web/lib/simulation.test.mjs web/lib/capability.test.mjs web/lib/evidence.test.mjs web/lib/explain.test.mjs web/lib/explain-llm.test.mjs
+
+# Independent recovery passport verification
+npx tsx web/scripts/verify-evidence.mjs <passport.json>
+
 # LLM explainer fallback/validation
 npx tsx --test web/lib/explain-llm.test.mjs
 
@@ -342,6 +362,9 @@ node --experimental-strip-types web/scripts/sandbox-check.mjs --execute --save
 ## 12. Testing rules
 
 - Every state transition change must keep `state-matrix.mjs` at **0 violations**.
+- Every policy change must pass the policy/simulation tests and keep activation at **0 violations**.
+- Every approval change must cover binding tampering, expiry, replay and missing explicit confirmation.
+- Every evidence change must verify the complete ledger chain and detect payload/signature tampering.
 - Every PayPal client change must pass `paypal-smoke.mjs`.
 - Every runner change must pass `sandbox-check.test.mjs`.
 - Every capture change must cover the 8 error issues.
@@ -352,11 +375,13 @@ Verified baseline:
 
 ```text
 build:            OK
+control-plane:    43/43
 runner tests:     5/5
 state matrix:     288/288
 load:             1 winner / 1 webhook event
-a11y:             0 violations
-mobile:           390/390
+evidence:         valid passport; tampering rejected
+a11y:             0 violations (all four stages)
+mobile:           390/390 (all four stages)
 vulnerabilities:  0
 ```
 
@@ -425,7 +450,8 @@ Not deployed yet. Do not claim a live URL.
 | Área | Estado |
 |---|---|
 | Vault | 65+ notes, 0 broken wikilinks |
-| App | Mock-first, full flow works |
+| App | Mock-first control plane: policy, simulation, approval, capture and evidence |
+| Control plane | Versioned DSL, 288-case simulator, single-use capabilities, signed passports |
 | PayPal client | Implemented, contract-tested against fake server |
 | Real sandbox | **Not executed** |
 | Webhook | Dedupe + signature verification implemented |
@@ -479,5 +505,6 @@ A change is done only when:
 - Webhooks: https://developer.paypal.com/api/rest/webhooks/
 - Sandbox: https://developer.paypal.com/sandbox-testing/overview
 - Demo: `web/DEMO.md`
+- Control-plane architecture: `web/CONTROL_PLANE.md`
 - Submission: `SUBMISSION.md`
 - Vault: `00 - Inicio/00 Inicio.md`

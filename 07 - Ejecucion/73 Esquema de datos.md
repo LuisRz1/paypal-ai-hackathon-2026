@@ -1,162 +1,146 @@
 ---
 title: Esquema de datos
-tags: [ejecucion, datos, db]
-updated: 2026-10-27
+tags: [ejecucion, datos, policy, evidence]
+updated: 2026-10-28
 ---
 
-# Esquema de datos
+# Esquema de datos · Recover Control Plane
 
-## Tablas
+La aplicación actual es un demo en memoria. Estos son los contratos implementados, no un esquema Postgres desplegado.
 
-### `orders`
+## `RecoveryPolicy`
+
+| Campo | Tipo | Regla |
+|---|---|---|
+| `schemaVersion` | `1` | Obligatorio |
+| `name` | string | 1–80 caracteres seguros |
+| `requireHumanApproval` | `true` | No configurable |
+| `maxCaptureAmount` | number \| null | Máximo dos decimales |
+| `allowedCurrencies` | string[] \| null | Códigos ISO de tres letras |
+| `rules` | `RecoveryPolicyRule[]` | Ordenadas; IDs únicos |
+| `fallback` | `"BASELINE"` | No configurable |
+
+Cada regla contiene `id`, `reason`, `action` y `when`. Las condiciones disponibles son `status`, `outstanding`, `minFailedPayments` y `reasonCode`.
+
+La política activa añade `id`, `hash`, `intent`, `source`, `activatedAt` y `simulationHash`.
+
+## `Proposal`
 
 | Campo | Tipo | Nota |
 |---|---|---|
-| id | text PK | `orderId` de PayPal |
-| merchant_id | text | |
-| amount | numeric(12,2) | Calculado en servidor |
-| currency | char(3) | |
-| intent | text | CAPTURE / AUTHORIZE |
-| status | text | CREATED / APPROVED / COMPLETED / VOIDED |
-| created_at | timestamptz | |
+| `id` | uuid | Identificador del caso |
+| `subscriptionId` | string | Suscripción objetivo |
+| `action` | string | `CAPTURE` en el flujo actual |
+| `amount` / `outstanding` | number | Derivados del saldo, no del LLM |
+| `currency` | string | Moneda de la suscripción |
+| `note` | string | Nota para PayPal |
+| `status` | enum | Ver estados abajo |
+| `requestId` | uuid | Idempotency key de PayPal |
+| `policyHash` | string | Versión exacta de política |
+| `createdAt` | ISO timestamp | Creación |
+| `approvedBy` | string opcional | Display name, no identidad verificada |
+| `approvedAt` | ISO timestamp opcional | Aprobación |
+| `capabilityHash` | string opcional | Hash del token, nunca el token |
 
-### `captures`
+Estados:
 
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | text PK | `captureId` |
-| order_id | text FK | |
-| amount | numeric(12,2) | |
-| currency | char(3) | |
-| status | text | COMPLETED / PENDING / REFUNDED |
-| verified_at | timestamptz | Read-back |
+```text
+AWAITING_APPROVAL → EXECUTED → VERIFIED
+AWAITING_APPROVAL → EXECUTED → PENDING_VERIFICATION
+AWAITING_APPROVAL → FAILED
+EXECUTED → PENDING_VERIFICATION
+```
 
-### `refunds`
+## `CapabilityPayload`
 
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | text PK | `refundId` |
-| capture_id | text FK | |
-| amount | numeric(12,2) | |
-| status | text | PENDING / COMPLETED / FAILED |
-| reason | text | |
-| verified_at | timestamptz | |
+| Campo | Contenido |
+|---|---|
+| `proposalId` | Caso autorizado |
+| `subscriptionId` | Suscripción exacta |
+| `amount` | String decimal, por ejemplo `49.00` |
+| `currency` | Moneda exacta |
+| `policyHash` | Política autorizada |
+| `requestId` | Idempotencia PayPal |
+| `nonce` | Valor único para replay protection |
+| `expiresAt` | Expiración en milisegundos |
 
-### `invoices`
+El token se firma con HMAC-SHA256. El store guarda solo su hash y los nonces consumidos.
 
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | text PK | `INV2-...` |
-| customer_email | text | |
-| amount | numeric(12,2) | |
-| currency | char(3) | |
-| status | text | DRAFT / SENT / UNPAID / PAID / CANCELLED |
-| due_at | date | |
-
-### `subscriptions`
+## `LedgerEvent`
 
 | Campo | Tipo | Nota |
 |---|---|---|
-| id | text PK | `I-...` |
-| plan_id | text | |
-| status | text | ACTIVE / SUSPENDED / CANCELLED |
-| next_billing | date | |
+| `id` | uuid | Evento |
+| `type` | string | `proposal`, `approval`, `policy`, `capture`, `verify`, `failure`, `webhook` |
+| `proposalId` | string | Vacío para eventos globales |
+| `at` | ISO timestamp | Tiempo del evento |
+| `detail` | object | Snapshot sin secretos |
+| `sequence` | number | Secuencia de inserción |
+| `previousHash` | string | Hash anterior; vacío en el primero |
+| `hash` | string | SHA-256 del contenido canónico |
 
-### `disputes`
+El passport incluye el **ledger completo** para no romper los enlaces de la cadena.
 
-| Campo | Tipo | Nota |
+## `RecoveryEvidence`
+
+Contiene:
+
+- `environment`: `mock` o `sandbox`.
+- Política activa y documento completo.
+- Snapshot redactado de suscripción antes de capturar.
+- Aprobador, timestamp, `requestId` y `capabilityHash`.
+- Resultado de captura, read-back y activación.
+- `verified` y `pendingVerification`.
+
+No incluye credenciales, token de capability, email ni dirección del subscriber.
+
+## `RecoveryPassport`
+
+Formato: `recover-passport/v1`.
+
+```text
+payload
+payloadHash = SHA256(canonicalJSON(payload))
+signature = Ed25519(payloadHash)
+publicKeyPem
+keyId = SHA256(publicKeyPem)
+algorithm = Ed25519
+```
+
+La verificación comprueba estructura, hash del payload, cadena del ledger, key ID, confianza en la clave y firma.
+
+## Stores actuales
+
+| Store | Persistencia | Límite |
 |---|---|---|
-| id | text PK | `PP-D-...` |
-| status | text | OPEN / UNDER_REVIEW / RESOLVED |
-| reason | text | INR / SNAD / ... |
-| amount | numeric(12,2) | |
-| deadline | date | |
-
-### `payouts`
-
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | text PK | batch/item |
-| recipient | text | email/phone |
-| amount | numeric(12,2) | |
-| status | text | PENDING / SUCCESS / FAILED |
-| verified_at | timestamptz | |
-
-### `webhook_events`
-
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | text PK | ID del evento |
-| type | text | |
-| payload | jsonb | |
-| received_at | timestamptz | |
-| processed_at | timestamptz | |
-
-### `agent_runs`
-
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | uuid PK | |
-| intent | text | |
-| model | text | |
-| proposal | jsonb | |
-| status | text | proposed / blocked / awaiting_approval / executed / pending_verification / verified |
-| created_at | timestamptz | |
-
-### `approvals`
-
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | uuid PK | |
-| run_id | uuid FK | |
-| approved_by | text | |
-| approved_at | timestamptz | |
-| token_hash | text | Código de un solo uso |
-
-### `audit_events`
-
-| Campo | Tipo | Nota |
-|---|---|---|
-| id | bigserial PK | Append-only |
-| run_id | uuid | |
-| event | text | |
-| data | jsonb | |
-| prev_hash | text | Hash chain |
-| hash | text | |
+| Política activa y baseline cache | `globalThis` | Se reinicia |
+| `proposals` | `globalThis` | Se reinicia |
+| `ledger` | `globalThis` | Se reinicia |
+| `recovered` | Flag mock por suscripción | Se reinicia |
+| `recoveryEvidence` | `globalThis` | Se reinicia |
+| Nonces consumidos | `Set` en proceso | Se reinicia |
+| Secret HMAC | Bytes aleatorios en proceso | Rota al reiniciar |
+| Par Ed25519 | Generado en proceso | Rota al reiniciar |
+| Webhook IDs vistos | `globalThis` | Se reinicia |
 
 ## Invariantes
 
-1. `orders.amount` sale del servidor, nunca del cliente.
-2. Un `capture_id` solo puede reembolsarse hasta su monto.
-3. Una acción de dinero por `run_id`.
-4. `webhook_events.id` es único (dedupe).
-5. Toda ejecución tiene `approval` previa.
-6. Toda ejecución tiene `verified_at` o queda `pending_verification`.
-7. `audit_events` no se actualiza ni se borra.
-8. En la implementación actual, propuestas y ledger viven en memoria; `recovered` es un flag mock por suscripción.
+1. El importe de captura viene del saldo de la suscripción.
+2. Toda captura tiene aprobación humana explícita.
+3. Capability, propuesta, política y request ID deben coincidir.
+4. Un nonce solo puede consumirse una vez por proceso.
+5. Un outcome incierto queda `PENDING_VERIFICATION`, nunca se reintenta a ciegas.
+6. `webhook_events.id` es único por proceso.
+7. Los eventos del ledger no se reordenan para presentación.
+8. `verified` requiere read-back real en sandbox; mock se etiqueta como mock.
+9. La activación de política repite los 288 casos en el servidor.
 
-## Estados del run
+## Persistencia futura
 
-```text
-proposed → blocked
-proposed → awaiting_approval
-awaiting_approval → executed → verified
-executed → pending_verification → verified | failed
-pending_verification → blocked (nueva propuesta)
-```
-
-## Estado implementado (mock)
-
-| Store | Persistencia |
-|---|---|
-| `proposals` | Memoria |
-| `ledger` | Memoria |
-| `recovered` | Flag en memoria por suscripción |
-
-El mock marca `recovered` tras una captura exitosa y rechaza una segunda propuesta con `409`.
+Postgres, almacenamiento duradero de claves y un reconciliador siguen pendientes. No forman parte del estado implementado ni deben presentarse como existentes.
 
 ## Enlaces
 
+- [[74 Recover Control Plane]]
 - [[50 Arquitectura canonica]]
 - [[51 Patrones de confianza]]
-- [[70 Stack y estructura]]

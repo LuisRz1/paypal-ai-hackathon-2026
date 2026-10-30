@@ -1,226 +1,117 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { nextAction, type Plan, type Subscription } from "@/lib/state-machine";
-import type { Explanation } from "@/lib/explain";
-import type { LedgerEvent, Proposal } from "@/lib/store";
-import { Timeline } from "./timeline";
+import type { ActivePolicy } from "@/lib/policy-store";
+import type { RecoveryPassportView } from "@/lib/recovery-passport";
+import { EvidencePanel } from "./evidence-panel";
+import { PolicyStudio } from "./policy-studio";
+import { RecoveryWorkspace } from "./recovery-workspace";
 
-interface Seed {
-  plans: Record<string, Plan>;
-  subscriptions: Subscription[];
-}
+type Stage = "mandate" | "simulation" | "recoveries" | "evidence";
 
-interface Approval {
-  proposal: Proposal;
-  capture?: { captureId?: string; status?: string };
-  verified?: boolean;
-  pendingVerification?: boolean;
-  ledger?: LedgerEvent[];
-}
+const STAGES: { id: Stage; label: string; number: string }[] = [
+  { id: "mandate", label: "Mandate", number: "01" },
+  { id: "simulation", label: "Simulation", number: "02" },
+  { id: "recoveries", label: "Recoveries", number: "03" },
+  { id: "evidence", label: "Evidence", number: "04" },
+];
 
 export default function Home() {
-  const [seed, setSeed] = useState<Seed | null>(null);
-  const [proposal, setProposal] = useState<Proposal | null>(null);
-  const [approval, setApproval] = useState<Approval | null>(null);
-  const [explanation, setExplanation] = useState<Explanation | null>(null);
-  const [events, setEvents] = useState<LedgerEvent[]>([]);
-  const [busy, setBusy] = useState<string | null>(null);
+  const [stage, setStage] = useState<Stage>("mandate");
+  const [active, setActive] = useState<ActivePolicy | null>(null);
+  const [environment, setEnvironment] = useState<"mock" | "sandbox">("mock");
+  const [passport, setPassport] = useState<RecoveryPassportView | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/seed")
-      .then((response) => response.json())
-      .then(setSeed)
-      .catch(() => setSeed(null));
+    Promise.all([fetch("/api/policies/active"), fetch("/api/health")])
+      .then(async ([policyResponse, healthResponse]) => {
+        const policy = await policyResponse.json();
+        const health = await healthResponse.json();
+        setActive(policy.active);
+        setEnvironment(health.status === "sandbox" ? "sandbox" : "mock");
+      })
+      .catch((cause) => {
+        setError(cause instanceof Error ? cause.message : "Could not load control plane");
+      });
   }, []);
 
-  async function refreshLedger() {
-    const response = await fetch("/api/ledger");
-    const payload = await response.json();
-    setEvents(payload.events ?? []);
-  }
-
-  async function propose(subscriptionId: string) {
-    setBusy(subscriptionId);
-    setError(null);
-    setApproval(null);
-    setExplanation(null);
-    try {
-      const response = await fetch("/api/recover", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ subscriptionId }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        setProposal(null);
-        setError(payload.error ?? "Could not propose a recovery");
-        return;
-      }
-      setProposal(payload.proposal);
-      const explainResponse = await fetch("/api/explain", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ subscriptionId }),
-      });
-      const explainPayload = await explainResponse.json();
-      setExplanation(explainPayload.explanation ?? null);
-    } catch (cause) {
-      setProposal(null);
-      setError(cause instanceof Error ? cause.message : "Network error");
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function approve() {
-    if (!proposal) return;
-    setBusy(proposal.id);
-    setError(null);
-    try {
-      const response = await fetch("/api/approve", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ proposalId: proposal.id }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        setError(payload.error ?? "Approval failed");
-        setProposal(payload.proposal ?? proposal);
-        await refreshLedger();
-        return;
-      }
-      setApproval(payload);
-      setProposal(payload.proposal);
-      await refreshLedger();
-    } catch (cause) {
-      setApproval(null);
-      setError(cause instanceof Error ? cause.message : "Network error");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   return (
-    <main>
-      <h1>Recover</h1>
-      <p className="subtitle">
-        PayPal-native recovery for suspended subscriptions. The agent proposes; deterministic
-        rules decide; a human approves; PayPal verifies. Sandbox and mock only.
-      </p>
-
-      {seed && <Timeline subscriptions={seed.subscriptions} />}
-
-      {!seed ? (
-        <p className="muted">Loading subscriptions…</p>
-      ) : (
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Subscription</th>
-                <th scope="col">Status</th>
-                <th scope="col">Outstanding</th>
-                <th scope="col">Next action</th>
-                <th scope="col">
-                  <span className="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-            {seed.subscriptions.map((subscription) => {
-              const plan = seed.plans[subscription.plan_id];
-              const action = nextAction(subscription, plan);
+    <div className="app-shell">
+      <aside className="sidebar" aria-label="Recover control plane">
+        <div className="brand">
+          <div className="brand-mark" aria-hidden="true">R/</div>
+          <div>
+            <strong>Recover</strong>
+            <small>Financial control plane</small>
+          </div>
+        </div>
+        <nav aria-label="Recovery workflow">
+          <ol className="side-nav">
+            {STAGES.map((item) => {
+              const complete =
+                (item.id === "mandate" && active?.source !== "system" && active !== null) ||
+                (item.id === "simulation" && active?.source !== "system" && active !== null) ||
+                (item.id === "recoveries" && passport !== null);
               return (
-                <tr key={subscription.id}>
-                  <td>
-                    <strong>{subscription.id}</strong>
-                    <div className="muted">{subscription.customer}</div>
-                  </td>
-                  <td>
-                    <span className={`badge ${subscription.status}`}>{subscription.status}</span>
-                  </td>
-                  <td>
-                    {subscription.currency} {subscription.outstanding_balance.toFixed(2)}
-                  </td>
-                  <td className="action">
-                    {action.action}
-                    <div className="muted">{action.reason}</div>
-                  </td>
-                  <td>
-                    <button
-                      disabled={action.action !== "CAPTURE" || busy !== null}
-                      onClick={() => propose(subscription.id)}
-                    >
-                      {busy === subscription.id ? "Proposing…" : "Propose recovery"}
-                    </button>
-                  </td>
-                </tr>
+                <li key={item.id}>
+                  <button aria-current={stage === item.id ? "step" : undefined} onClick={() => setStage(item.id)}>
+                    <span className="stage-number">{item.number}</span>
+                    <span>{item.label}</span>
+                    <span className={`stage-state ${complete ? "complete" : ""}`} aria-hidden="true" />
+                  </button>
+                </li>
               );
             })}
-          </tbody>
-          </table>
+          </ol>
+        </nav>
+        <div className="guardrail-card">
+          <strong>Authority boundary</strong>
+          <p>AI can investigate and compile. It cannot authorize money movement.</p>
+          <ol>
+            <li>Code validates policy</li>
+            <li>Human approves once</li>
+            <li>PayPal verifies outcome</li>
+          </ol>
         </div>
-      )}
+      </aside>
 
-      {error && (
-        <p className="bad" role="alert">
-          {error}
-        </p>
-      )}
-
-      {proposal && (
-        <section className="result" aria-live="polite">
-          <strong>Proposal {proposal.id}</strong>
-          <div className="action">
-            {proposal.action} {proposal.amount.toFixed(2)} {proposal.currency}
-          </div>
-          <div className="muted">
-            {proposal.status} · request {proposal.requestId}
-          </div>
-          {explanation && (
-            <div className="explain">
-              <strong>{explanation.summary}</strong>
-              <div>{explanation.likelyCause}</div>
-              <div className="muted">
-                Recommended: {explanation.recommendedAction} · {explanation.confidence}
-              </div>
-              <p>{explanation.playbook}</p>
-            </div>
+      <main className="workspace">
+        <header className="topbar">
+          <div className="topbar-copy">Human-gated PayPal recovery · policy, execution and proof in one workflow</div>
+          <span className={`environment ${environment}`}>
+            {environment === "sandbox" ? "PayPal Sandbox" : "Mock environment"}
+          </span>
+        </header>
+        <div className="content">
+          {error && <div className="error-banner" role="alert">{error}</div>}
+          {(stage === "mandate" || stage === "simulation") && (
+            <PolicyStudio
+              stage={stage}
+              active={active}
+              onActivated={(next) => {
+                setActive(next);
+                setStage("recoveries");
+              }}
+              onShowSimulation={() => setStage("simulation")}
+              onShowMandate={() => setStage("mandate")}
+              onOpenRecoveries={() => setStage("recoveries")}
+            />
           )}
-          <button
-            onClick={approve}
-            disabled={proposal.status !== "AWAITING_APPROVAL" || busy !== null}
-          >
-            {busy === proposal.id ? "Approving…" : "Approve recovery"}
-          </button>
-        </section>
-      )}
-
-      {approval && (
-        <section className="result" aria-live="polite">
-          <strong>Execution</strong>
-          <div className="action">
-            {approval.verified
-              ? "VERIFIED"
-              : approval.pendingVerification
-                ? "PENDING VERIFICATION"
-                : "NOT VERIFIED"}
-            {approval.capture?.captureId
-              ? ` · ${approval.capture.captureId}`
-              : ""}
-          </div>
-          <pre>{JSON.stringify(approval, null, 2)}</pre>
-        </section>
-      )}
-
-      {events.length > 0 && (
-        <section className="result" aria-live="polite">
-          <strong>Ledger ({events.length})</strong>
-          <pre>{JSON.stringify(events, null, 2)}</pre>
-        </section>
-      )}
-    </main>
+          {stage === "recoveries" && (
+            <RecoveryWorkspace
+              active={active}
+              onEvidence={(next) => {
+                setPassport(next);
+                setStage("evidence");
+              }}
+            />
+          )}
+          {stage === "evidence" && (
+            <EvidencePanel passport={passport} onBack={() => setStage("recoveries")} />
+          )}
+        </div>
+      </main>
+    </div>
   );
 }

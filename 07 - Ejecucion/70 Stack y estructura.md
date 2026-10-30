@@ -1,76 +1,76 @@
 ---
 title: Stack y estructura
 tags: [ejecucion, stack, arquitectura]
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 # Stack y estructura
 
-## Stack recomendado
+## Stack implementado
 
-| Capa | Elección | Alternativa |
+| Capa | Elección actual | Nota |
 |---|---|---|
-| Framework | Next.js 15 + TypeScript | FastAPI + Next |
-| UI | Tailwind + componentes propios | shadcn/ui |
-| DB | Postgres (Neon) | SQLite para local |
-| ORM | Drizzle | Prisma |
-| Validación | Zod | Pydantic si Python |
-| PayPal | REST con `fetch` + SDK v6 | `@paypal/paypal-server-sdk` |
-| IA | Vercel AI SDK / OpenAI SDK | OpenRouter, Gemini, Ollama |
-| Dashboard | AG Studio (modelo A) | Bryntum (modelo B) |
-| Deploy | Render | Vercel |
+| Runtime | Node.js 22+ | Crypto nativo y `Promise.withResolvers` |
+| Framework | Next.js 15 App Router | API server-side |
+| UI | React 19 + TypeScript estricto | Componentes cliente solo donde hay interacción |
+| Estilos | CSS plano | `web/app/globals.css`; sin Tailwind |
+| PayPal | REST + `fetch` | Sin SDK de servidor |
+| IA | OpenAI-compatible JSON + fallback determinista | Compilador de políticas y explicador |
+| Validación | Type guards escritos a mano | Sin Zod ni otra dependencia |
+| Seguridad | HMAC-SHA256 y Ed25519 | `node:crypto` |
+| Persistencia | `globalThis` en memoria | Solo demo |
+| Deploy | `render.yaml` | Preparado, no desplegado |
 
-## Estructura de repo
+## Estructura actual
 
 ```text
-app/
-  page.tsx
-  dashboard/
-  api/
-    paypal/
-      orders/route.ts
-      capture/route.ts
-      refunds/route.ts
-      invoices/route.ts
-      payouts/route.ts
-    webhooks/paypal/route.ts
-    agent/route.ts
-    approvals/route.ts
-lib/
-  paypal/
-    client.ts
-    orders.ts
-    invoices.ts
-    subscriptions.ts
-    disputes.ts
-    payouts.ts
-  policy/
-    engine.ts
-    rules.ts
-  agent/
-    prompt.ts
-    tools.ts
-    provider.ts
-  verify/
-    paypal.ts
-  audit/
-    ledger.ts
-  db/
-    schema.ts
-    queries.ts
-components/
-  checkout/
-  dashboard/
-  evidence/
-docs/
-  evidence/
-scripts/
-  register-webhook.ts
-  seed-demo.ts
-tests/
-  policy.test.ts
-  verify.test.ts
-  webhook.test.ts
+web/
+  app/
+    page.tsx                    Shell de cuatro etapas
+    policy-studio.tsx           Mandato y simulación
+    recovery-workspace.tsx      Portfolio, caso y aprobación
+    evidence-panel.tsx          Recibo y verificación
+    timeline.tsx                Timeline CSS
+    globals.css                 Sistema visual responsive
+    api/
+      policies/
+        compile/route.ts
+        simulate/route.ts
+        activate/route.ts
+        active/route.ts
+      recover/route.ts
+      approve/route.ts
+      evidence/
+        [proposalId]/route.ts
+        verify/route.ts
+      explain/route.ts
+      seed/route.ts
+      health/route.ts
+      ledger/route.ts
+      webhooks/paypal/route.ts
+  lib/
+    state-machine.ts            Reglas PayPal deterministas
+    policy.ts                   DSL y evaluación segura
+    policy-compiler.ts          Intención a política
+    simulation.ts               Matriz de 288 casos
+    policy-store.ts             Versión activa
+    capability.ts               Aprobación single-use
+    evidence.ts                 Ledger y firma Ed25519
+    recovery-passport.ts        Ensamblaje de evidencia
+    integrity.ts                JSON canónico y SHA-256
+    store.ts                    Estado en memoria
+    paypal.ts                   Cliente sandbox
+    paypal-mock.ts              Provider mock
+    explain.ts                  Explicador determinista
+    explain-llm.ts              LLM opcional
+  scripts/
+    sandbox-check.mjs
+    state-matrix.mjs
+    paypal-smoke.mjs
+    load-check.mjs
+    verify-evidence.mjs
+  CONTROL_PLANE.md              Arquitectura, APIs, UX y trust model
+  DEMO.md                       Flujo guiado
 ```
 
 ## Variables de entorno
@@ -78,64 +78,61 @@ tests/
 ```env
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
-PAYPAL_ENV=sandbox
+PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
 PAYPAL_WEBHOOK_ID=
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-DATABASE_URL=
+ALLOW_UNVERIFIED_WEBHOOKS=false
+APPROVER_TOKEN=
 
 OPENAI_API_KEY=
-# o OPENROUTER_API_KEY / GEMINI_API_KEY
-LLM_MODEL=
-
-AG_STUDIO_LICENSE_KEY=
-NEXT_PUBLIC_AG_STUDIO_LICENSE_KEY=
-
-CRON_SECRET=
+LLM_API_KEY=
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o-mini
 ```
+
+El secret HMAC y el par Ed25519 se generan por proceso; no hay variables que configurar en el demo. Una versión durable necesitaría KMS/secret management y directorio de claves públicas.
 
 ## Scripts
 
-| Script | Uso |
+| Comando | Uso |
 |---|---|
-| `dev` | Desarrollo |
-| `build` | Build de producción |
-| `seed` | Datos de demo |
-| `webhook:register` | Registrar webhook en sandbox |
-| `test` | Tests unitarios |
-| `test:e2e` | Flujo sandbox |
-| `lint` | ESLint/Prettier |
-| `node --experimental-strip-types web/scripts/sandbox-check.mjs` | Dry run contra sandbox |
-| `... sandbox-check.mjs --execute --save` | Captura real + evidencia |
-| `node web/scripts/load-check.mjs` | Carga y concurrencia |
-| `node --experimental-strip-types web/scripts/state-matrix.mjs` | Matriz de estados |
+| `npm --prefix web run build` | Build de producción |
+| `npx tsx --test web/lib/*.test.mjs` | Contratos de librería; también se enumeran en `AGENTS.md` |
+| `node --test spike/state_machine.test.mjs` | Spike de estados |
+| `node --experimental-strip-types web/scripts/state-matrix.mjs` | Matriz base de 288 casos |
 | `node --experimental-strip-types web/scripts/paypal-smoke.mjs` | Cliente PayPal con servidor falso |
+| `node --test web/scripts/sandbox-check.test.mjs` | Runner sandbox |
+| `node web/scripts/load-check.mjs` | Concurrencia; requiere servidor fresco |
+| `npx tsx web/scripts/verify-evidence.mjs <passport.json>` | Verificación independiente |
 
 ## Reglas de código
 
-- Server-only para secretos.
-- Montos como string decimal, no float.
-- Validar toda entrada con Zod.
-- Idempotencia en POST.
-- Errores de PayPal mapeados a mensajes de usuario.
-- `debug_id` en logs.
+- Secretos y escrituras solo en servidor.
+- Importes como strings decimales en capability y evidencia.
+- Validación estricta en cada boundary JSON.
+- `PayPal-Request-Id` estable por propuesta.
+- No retry ciego en captura/activación.
+- Ledger en orden de inserción y con hash chain.
+- No claims de sandbox sin evidencia ejecutada.
 
-## Testing
+## Verificación actual
 
-1. Unit: policy, montos, estados, dedupe.
-2. Integration: PayPal fake server.
-3. Smoke: una orden real en sandbox.
-4. Manual: flujo completo con dos cuentas sandbox.
+- Policy/simulation/capability/evidence/explainers: **43/43**.
+- Spike: **16/16**; runner: **5/5**.
+- Matriz base: **288/288**, cero violaciones.
+- Navegador: mandato → simulación → aprobación → evidencia.
+- axe: **0 violaciones** en las cuatro etapas.
+- Móvil: **390/390** sin overflow en las cuatro etapas.
+- Carga: **1** propuesta y **1** aprobación ganadoras; **1** evento en 50 webhooks.
 
-## Deploy
+## Pendientes
 
-- Render Web Service + Postgres.
-- Variables en el dashboard, nunca en el repo.
-- Cron job para reconciliación.
-- Keepalive si el plan es free.
+- Captura sandbox real y evidencia.
+- Persistencia durable, identidad y KMS.
+- Reconciliación de `PENDING_VERIFICATION`.
+- Deploy y video.
 
 ## Enlaces
 
-- [[50 Arquitectura canonica]]
+- [[74 Recover Control Plane]]
 - [[73 Esquema de datos]]
-- [[71 Backlog 16 dias]]
+- [[72 Guion del video]]

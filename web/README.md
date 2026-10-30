@@ -1,10 +1,12 @@
 # Recover · web
 
-Early Next.js app for the PayPal AI Hackathon. Sandbox/mock only; no PayPal calls yet.
+Recover is a mock-first PayPal recovery control plane: AI compiles a merchant mandate, deterministic code tests and enforces it, a human authorizes one exact capture, and Recover emits signed evidence.
+
+**No live sandbox capture has been executed.** Without PayPal credentials, all captures use the mock and are labeled as mock.
 
 ## Run
 
-Requires Node.js 22+ (`Promise.withResolvers`).
+Requires Node.js 22+.
 
 ```bash
 cd web
@@ -15,44 +17,68 @@ npm run start -- -p 3100
 
 Open http://localhost:3100.
 
-## APIs
+The four-stage UI covers:
 
-- `GET /api/seed` — 4 seeded subscriptions.
-- `POST /api/recover` — `{ "subscriptionId": "SUB-1002" }` creates a proposal in `AWAITING_APPROVAL`.
-- `POST /api/approve` — `{ "proposalId": "..." }` validates, captures with the mock and verifies.
-- `POST /api/explain` — explanation for the last failure reason (deterministic; optional LLM).
-- `GET /api/health` — config and ledger status.
-- `GET /api/ledger` — proposal, capture and verification events.
+1. **Mandate** — compile natural-language recovery intent into a constrained policy.
+2. **Simulation** — run 288 deterministic cases and sign a version only with zero violations.
+3. **Recoveries** — review `SUB-1002`, approve the exact outstanding balance and execute through mock or sandbox.
+4. **Evidence** — verify the Ed25519 signature and hash-chained ledger, then download the passport.
 
-## Webhook
+Architecture, API contracts, UX references and trust limits: [`CONTROL_PLANE.md`](CONTROL_PLANE.md).
 
-- `POST /api/webhooks/paypal` — dedupes by `event.id` and writes a `webhook` ledger event.
-- With `PAYPAL_WEBHOOK_ID`, it verifies the signature through PayPal.
-- Without it, it returns `503` unless `ALLOW_UNVERIFIED_WEBHOOKS=true`.
+## Main APIs
 
-## Current scope
-
-- State machine for healthy, failed, suspended, expired and zero-balance subscriptions.
-- Capture validation for amount, currency, status, note and decimals.
-- Mock PayPal capture with the 8 provider errors.
-- Real sandbox client (`web/lib/paypal.ts`) with OAuth, capture, activate and webhook verification.
-- Reads retry `429`/`5xx`; capture and activate POSTs do not retry on `5xx`.
-- Uncertain capture outcomes become `PENDING_VERIFICATION`; a new proposal is blocked until reconciliation.
-- In-memory proposals and ledger.
-- Mock UI; no real money.
+- `POST /api/policies/compile` — compile `{ intent }` with the optional LLM or deterministic fallback.
+- `POST /api/policies/simulate` — validate and simulate `{ policy }`.
+- `POST /api/policies/activate` — re-simulate and activate with `{ signed: true }`.
+- `GET /api/policies/active` — active version and integrity hashes.
+- `GET /api/seed` — seeded subscriptions plus server-side policy decisions.
+- `POST /api/recover` — create an `AWAITING_APPROVAL` proposal.
+- `POST /api/approve` — require `{ proposalId, confirmed: true, approvedBy }`, consume a single-use capability, capture and read back.
+- `GET /api/evidence/{proposalId}` — signed recovery passport.
+- `POST /api/evidence/verify` — verify payload, ledger, key and signature.
+- `POST /api/explain` — deterministic or optional-LLM failure explanation.
+- `GET /api/health` — environment, configuration, active policy and evidence key.
+- `POST /api/webhooks/paypal` — signature verification, dedupe and chained ledger event.
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and fill the sandbox values. Without `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET`, the app uses the mock.
+Copy `.env.example` to `.env.local`. Without both PayPal credentials, the app uses the mock.
 
-Security notes:
+```env
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_API_BASE=https://api-m.sandbox.paypal.com
+PAYPAL_WEBHOOK_ID=
+ALLOW_UNVERIFIED_WEBHOOKS=false
+APPROVER_TOKEN=
+OPENAI_API_KEY=
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=gpt-4o-mini
+```
 
-- `APPROVER_TOKEN` is optional; set it in a deployed environment and send `Authorization: Bearer <token>` to `/api/approve`.
-- The proposal and ledger stores are in memory and reset on restart.
-- This is sandbox/mock only; do not point it at live PayPal.
+- `APPROVER_TOKEN` is optional locally and required in deployed environments.
+- Partial PayPal credentials fail closed on approval.
+- Capture and activation POSTs never retry `5xx`; uncertain outcomes become `PENDING_VERIFICATION`.
+- Stores, HMAC secret and Ed25519 keypair are process-local and reset on restart.
+- Never point the app at live PayPal.
 
-## Next
+## Verification
 
-- Run the sandbox `OUTSTANDING_BALANCE` capture with real credentials.
-- Add the agent explanation and the Bryntum timeline.
-- Persist proposals and ledger in Postgres.
+```bash
+npx tsx --test web/lib/policy.test.mjs web/lib/simulation.test.mjs \
+  web/lib/capability.test.mjs web/lib/evidence.test.mjs \
+  web/lib/explain.test.mjs web/lib/explain-llm.test.mjs
+node --test spike/state_machine.test.mjs
+node --experimental-strip-types web/scripts/state-matrix.mjs
+node --experimental-strip-types web/scripts/paypal-smoke.mjs
+node --test web/scripts/sandbox-check.test.mjs
+```
+
+Run the commands from the repository root. For concurrency, start a fresh server on port 3100 and run `node web/scripts/load-check.mjs`.
+
+## Still pending
+
+- Real sandbox `OUTSTANDING_BALANCE` capture and saved evidence.
+- Hosted deployment and video.
+- Durable persistence, key management and reconciliation for uncertain outcomes.
